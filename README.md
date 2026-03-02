@@ -4,7 +4,7 @@
 [![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![OpenRouter](https://img.shields.io/badge/AI_Powered-OpenRouter-FF5722?style=for-the-badge)](https://openrouter.ai/)
+[![Google Gemini](https://img.shields.io/badge/AI_Powered-Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 
 NutriTrack, kullanıcıların günlük kalori, makro besin (protein, karbonhidrat, yağ) ve su tüketimlerini takip etmelerini sağlayan, yapay zeka (Gemma 3 Vision) destekli modern bir sağlık ve beslenme uygulamasıdır.
 
@@ -34,7 +34,7 @@ Kullanıcılar kamera ile yemeklerini çekerek anında saniyeler içinde kalori 
 ### 🧩 Kritik Kütüphaneler & Araçlar
 - **Navigasyon:** `@react-navigation/native`, `@react-navigation/bottom-tabs`, `@react-navigation/native-stack`
 - **Tasarım & Animasyon:** `react-native-reanimated`, React Native `Animated` API, `react-native-svg` (dairesel grafikler için).
-- **Yapay Zeka (AI):** `OpenRouter REST API` (*google/gemma-3-27b-it:free* modeli).
+- **Yapay Zeka (AI):** `Google Gemini API` (*gemini-1.5-flash* modeli) — `@google/generative-ai` SDK.
 - **Expo API'leri:** `expo-camera`, `expo-image-picker`, `expo-file-system`, `expo-haptics` (hissiyat/titreşim).
 
 ---
@@ -59,9 +59,9 @@ Kullanıcılar kamera ile yemeklerini çekerek anında saniyeler içinde kalori 
    ```
 
 3. **Çevresel Değişkenleri ayarlayın:**
-   Projenin ana dizinine bir `.env` dosyası oluşturun ve OpenRouter anahtarınızı girin:
+   Projenin ana dizinine bir `.env` dosyası oluşturun ve Google AI API anahtarınızı girin:
    ```env
-   EXPO_PUBLIC_OPENROUTER_API_KEY=sizin_openrouter_api_anahtariniz
+   EXPO_PUBLIC_GOOGLE_AI_KEY=sizin_google_ai_api_anahtariniz
    ```
 
 4. **Uygulamayı başlatın:**
@@ -89,4 +89,4 @@ App.tsx              # Uygulamanın Başlangıç Dosyası
 ---
 
 ## 🔒 Güvenlik Notu
-Uygulama tamamen yerel cihaz odaklı çalışır (Kullanıcı verileri sunucuya gitmez, AsyncStorage ile telefonda kalır). Fotoğraf analizi işlemi sırasında görüntüler, yapay zeka çıktısı üretilebilmesi için geçici olarak OpenRouter API üzerinden Google modellerine iletilir.
+Uygulama tamamen yerel cihaz odaklı çalışır (Kullanıcı verileri sunucuya gitmez, AsyncStorage ile telefonda kalır). Fotoğraf analizi işlemi sırasında görüntüler, yapay zeka çıktısı üretilebilmesi için geçici olarak Google Gemini API'ye iletilir.

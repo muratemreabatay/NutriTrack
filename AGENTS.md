@@ -8,8 +8,8 @@
 - **NativeWind v2** (not v4). Use `className` strings with Tailwind v3 syntax. Do not use `styled()` wrapper or NativeWind v4 APIs.
 - **All state flows through `CalorieContext`** (`src/context/CalorieContext.tsx`). Do not create parallel storage or state systems — add to the existing context or extract sub-contexts from it.
 - **AsyncStorage keys are prefixed with `@calorie_`** (see `STORAGE_KEYS` in `CalorieContext.tsx`). Never use bare keys. Changing existing key names will lose user data.
-- **Env vars must be prefixed with `EXPO_PUBLIC_`** to be accessible at runtime (Expo convention). The API key is `EXPO_PUBLIC_OPENROUTER_API_KEY` in `.env`.
-- **Do not commit `.env`** — it contains the OpenRouter API key.
+- **Env vars must be prefixed with `EXPO_PUBLIC_`** to be accessible at runtime (Expo convention). The API key is `EXPO_PUBLIC_GOOGLE_AI_KEY` in `.env`.
+- **Do not commit `.env`** — it contains the Google AI API key.
 
 ## Validation before finishing
 

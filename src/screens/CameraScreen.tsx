@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Randomized AI predictions for fallback
 const FALLBACK_PREDICTIONS = [
@@ -18,10 +19,10 @@ const FALLBACK_PREDICTIONS = [
     { name: 'Karışık Izgara Tabağı', calories: 650, protein: 55, carbs: 8, fat: 42 },
 ];
 
-// OpenRouter API Key
-const openRouterApiKey = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
-if (!openRouterApiKey) {
-    console.warn("EXPO_PUBLIC_OPENROUTER_API_KEY is missing from .env file");
+// Google Gemini API Key
+const googleAiKey = process.env.EXPO_PUBLIC_GOOGLE_AI_KEY;
+if (!googleAiKey) {
+    console.warn("EXPO_PUBLIC_GOOGLE_AI_KEY is missing from .env file");
 }
 
 const CameraScreen = () => {
@@ -38,7 +39,7 @@ const CameraScreen = () => {
         setScanning(true);
         hapticMedium();
 
-        // Scanning animation (store ref for cleanup)
+        // Scanning animation
         const scanAnimation = Animated.loop(
             Animated.sequence([
                 Animated.timing(scanAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
@@ -47,10 +48,10 @@ const CameraScreen = () => {
         );
         scanAnimation.start();
 
-        // F12: Guard against missing API key
-        if (!openRouterApiKey) {
+        // Guard against missing API key
+        if (!googleAiKey) {
             const fallback = FALLBACK_PREDICTIONS[Math.floor(Math.random() * FALLBACK_PREDICTIONS.length)];
-            Alert.alert('API Anahtarı Eksik', 'OpenRouter API anahtarı .env dosyasında bulunamadı.\n\nDemo sonucu kullanılıyor.');
+            Alert.alert('API Anahtarı Eksik', 'Google AI API anahtarı .env dosyasında bulunamadı.\n\nDemo sonucu kullanılıyor.');
             setScanning(false);
             scanAnimation.stop();
             hapticSuccess();
@@ -58,12 +59,8 @@ const CameraScreen = () => {
             return;
         }
 
-        // F4: AbortController with 30s timeout
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-
         try {
-            // F3: Resize and compress image before base64 encoding to reduce memory usage
+            // Resize and compress image before sending to reduce memory usage
             const manipulated = await ImageManipulator.manipulateAsync(
                 uri,
                 [{ resize: { width: 1024 } }],
@@ -71,7 +68,6 @@ const CameraScreen = () => {
             );
             const base64Image = await FileSystem.readAsStringAsync(manipulated.uri, { encoding: 'base64' });
 
-            // Call OpenRouter API with a free vision model using standard fetch
             const prompt = `Sen uzman bir diyetisyensin. Bu fotoğraftaki yemeğin ne olduğunu tahmin et ve besin değerlerini (ortalama bir porsiyon için) döndür.
 SADECE JSON FORMATINDA YANIT VER. Markdown kullanma (yani \`\`\`json vs. yazma), sadece geçerli bir JSON objesi döndür.
 Eğer fotoğrafta yemek yoksa tahmini bir yemek uydurma, "Belirsiz" gibi bir isim ver ve değerlere 0 yaz.
@@ -84,46 +80,24 @@ Beklenen JSON formatı:
   "fat": 15
 }`;
 
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                signal: controller.signal,
-                headers: {
-                    "Authorization": `Bearer ${openRouterApiKey}`,
-                    "HTTP-Referer": "https://nutritrack.app",
-                    "X-Title": "NutriTrack",
-                    "Content-Type": "application/json"
+            // Google Gemini API call
+            const genAI = new GoogleGenerativeAI(googleAiKey);
+            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+            const result = await model.generateContent([
+                prompt,
+                {
+                    inlineData: {
+                        mimeType: 'image/jpeg',
+                        data: base64Image,
+                    },
                 },
-                body: JSON.stringify({
-                    model: "google/gemma-3-27b-it:free",
-                    messages: [
-                        {
-                            role: "user",
-                            content: [
-                                { type: "text", text: prompt },
-                                {
-                                    type: "image_url",
-                                    image_url: {
-                                        url: `data:image/jpeg;base64,${base64Image}`
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                })
-            });
+            ]);
 
-            clearTimeout(timeout);
-
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`OpenRouter API Hatası: ${response.status} - ${errText}`);
-            }
-
-            const data = await response.json();
-            const text = data?.choices?.[0]?.message?.content || "";
+            const responseText = result.response.text();
 
             // Clean markdown formatting if Gemini included it despite instructions
-            const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const cleanedText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
             const prediction = JSON.parse(cleanedText);
 
             setScanning(false);
@@ -135,17 +109,13 @@ Beklenen JSON formatı:
                 prediction,
             });
         } catch (error: any) {
-            clearTimeout(timeout);
             console.error('AI Scan Error:', error);
 
             const fallback = FALLBACK_PREDICTIONS[Math.floor(Math.random() * FALLBACK_PREDICTIONS.length)];
-            const isTimeout = error?.name === 'AbortError';
 
             Alert.alert(
-                isTimeout ? 'Zaman Aşımı' : 'AI Analiz Hatası / Yoğunluk',
-                isTimeout
-                    ? 'AI servisi 30 saniye içinde yanıt vermedi.\n\nDemo sonucu kullanılıyor.'
-                    : 'Ücretsiz AI servisinde anlık yoğunluk (Rate Limit) veya bağlantı hatası oluştu.\n\nDemoyu incelemeniz için simülasyon sonucu kullanılıyor.'
+                'AI Analiz Hatası',
+                'Google AI servisine bağlanırken bir hata oluştu.\n\nDemo sonucu kullanılıyor.'
             );
 
             setScanning(false);
