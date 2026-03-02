@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCalories } from '../context/CalorieContext';
 import Svg, { Circle } from 'react-native-svg';
 import { hapticMedium, hapticLight } from '../utils/haptics';
+import AnimatedWaterGlass from '../components/AnimatedWaterGlass';
 
 const WaterTrackerScreen = () => {
     const { waterGlasses, waterTarget, addWater, removeWater } = useCalories();
@@ -47,7 +48,7 @@ const WaterTrackerScreen = () => {
     const strokeDashoffset = circumference - progress * circumference;
 
     const getMessage = () => {
-        if (waterGlasses === 0) return 'Hadi ilk bardağını iç! 💧';
+        if (waterGlasses === 0) return 'Hadi ilk bardağını iç! 🥛';
         if (progress < 0.25) return 'İyi başlangıç, devam et!';
         if (progress < 0.5) return 'Harika gidiyorsun! 💪';
         if (progress < 0.75) return 'Yarısından fazlasını içtin!';
@@ -68,7 +69,7 @@ const WaterTrackerScreen = () => {
                 <Text className="text-gray-400 text-sm mt-1">{getMessage()}</Text>
             </Animated.View>
 
-            {/* Progress Ring */}
+            {/* Progress Ring with Glass Animation */}
             <Animated.View
                 style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
                 className="items-center mt-8"
@@ -90,12 +91,14 @@ const WaterTrackerScreen = () => {
                         />
                     </Svg>
                     <View className="items-center">
+                        {/* Animated water glass inside the ring */}
+                        <AnimatedWaterGlass fillLevel={progress} size={60} showWave={true} />
                         <Animated.Text
-                            style={{ fontSize: 40, fontWeight: 'bold', color: '#38BDF8', transform: [{ scale: scaleAnim }] }}
+                            style={{ fontSize: 28, fontWeight: 'bold', color: '#38BDF8', transform: [{ scale: scaleAnim }], marginTop: 4 }}
                         >
                             {waterGlasses}
                         </Animated.Text>
-                        <Text className="text-gray-400 text-sm">/ {waterTarget} bardak</Text>
+                        <Text className="text-gray-400 text-xs">/ {waterTarget} bardak</Text>
                     </View>
                 </View>
             </Animated.View>
@@ -116,28 +119,7 @@ const WaterTrackerScreen = () => {
                 </View>
             </Animated.View>
 
-            {/* Glass Grid */}
-            <Animated.View
-                style={{ opacity: fadeAnim }}
-                className="mx-6 mt-6"
-            >
-                <Text className="text-gray-400 text-xs uppercase tracking-wider mb-3">Bugünkü Bardaklar</Text>
-                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-                    {Array.from({ length: waterTarget }).map((_, i) => (
-                        <View
-                            key={i}
-                            className={`w-12 h-12 rounded-xl items-center justify-center border ${i < waterGlasses
-                                ? 'bg-water/20 border-water/40'
-                                : 'bg-surface border-gray-800'
-                                }`}
-                        >
-                            <Text style={{ fontSize: i < waterGlasses ? 20 : 16, opacity: i < waterGlasses ? 1 : 0.3 }}>
-                                {i < waterGlasses ? '💧' : '○'}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </Animated.View>
+
 
             {/* Action Buttons */}
             <View className="absolute bottom-10 left-6 right-6">
@@ -159,7 +141,7 @@ const WaterTrackerScreen = () => {
                         className="w-20 h-20 bg-water rounded-full items-center justify-center"
                         style={{ shadowColor: '#38BDF8', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 16 }}
                     >
-                        <Text style={{ fontSize: 28 }}>💧</Text>
+                        <AnimatedWaterGlass fillLevel={0.7} size={32} showWave={true} />
                     </TouchableOpacity>
 
                     {/* Info */}

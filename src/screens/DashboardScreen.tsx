@@ -10,7 +10,8 @@ import { hapticLight, hapticMedium } from '../utils/haptics';
 import MacroCard from '../components/MacroCard';
 import StreakBadge from '../components/StreakBadge';
 import WeeklyChart from '../components/WeeklyChart';
-import Svg, { Circle } from 'react-native-svg';
+import AnimatedWaterGlass from '../components/AnimatedWaterGlass';
+import Svg, { Circle, Path, Line, Rect } from 'react-native-svg';
 
 
 
@@ -233,7 +234,7 @@ const DashboardScreen = () => {
                 >
                     <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center">
-                            <Text style={{ fontSize: 24 }}>💧</Text>
+                            <AnimatedWaterGlass fillLevel={waterTarget > 0 ? Math.min(waterGlasses / waterTarget, 1) : 0} size={28} showWave={waterGlasses > 0} />
                             <View className="ml-3">
                                 <Text className="text-white font-semibold">Su Takibi</Text>
                                 <Text className="text-gray-500 text-xs">{waterGlasses * 250} / {waterTarget * 250} ml</Text>
@@ -264,7 +265,10 @@ const DashboardScreen = () => {
                         onPress={() => { hapticMedium(); navigation.navigate('Camera' as never); }}
                         activeOpacity={0.8}
                     >
-                        <Text style={{ fontSize: 16 }}>📸</Text>
+                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                            <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#030712" strokeWidth={2} strokeLinejoin="round" />
+                            <Circle cx={12} cy={13} r={4} stroke="#030712" strokeWidth={2} />
+                        </Svg>
                         <Text className="text-black font-bold ml-2 text-sm">Fotoğrafla</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -272,7 +276,9 @@ const DashboardScreen = () => {
                         onPress={() => { hapticLight(); navigation.navigate('ManualEntry' as never); }}
                         activeOpacity={0.8}
                     >
-                        <Text style={{ fontSize: 16 }}>✏️</Text>
+                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                            <Path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" stroke="#FFFFFF" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+                        </Svg>
                         <Text className="text-white font-bold ml-2 text-sm">Manuel</Text>
                     </TouchableOpacity>
                 </View>
