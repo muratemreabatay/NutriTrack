@@ -19,80 +19,35 @@ export type Badge = {
 
 export const BADGES: Badge[] = [
     // İlk adımlar
-    {
-        id: 'first_meal', name: 'İlk Adım', description: 'İlk yemeğini kaydettin!',
-        icon: '🥑', condition: (ctx) => ctx.consumed.calories > 0
-    },
+    { id: 'first_meal', name: 'İlk Adım', description: 'İlk yemeğini kaydettin!', icon: '🥑', condition: (ctx) => ctx.consumed.calories > 0 },
     // Streak rozetleri
-    {
-        id: 'streak_3', name: 'İstikrarlı', description: '3 gün üst üste takip',
-        icon: '🔥', condition: (ctx) => ctx.streak >= 3
-    },
-    {
-        id: 'streak_7', name: 'Hafta Savaşçısı', description: '7 günlük seri!',
-        icon: '⚔️', condition: (ctx) => ctx.streak >= 7
-    },
-    {
-        id: 'streak_14', name: 'Alışkanlık Ustası', description: '14 gün aralıksız takip',
-        icon: '🛡️', condition: (ctx) => ctx.streak >= 14
-    },
-    {
-        id: 'streak_30', name: 'Demir İrade', description: '30 gün boyunca her gün!',
-        icon: '💎', condition: (ctx) => ctx.streak >= 30
-    },
+    { id: 'streak_3', name: 'İstikrarlı', description: '3 gün üst üste takip', icon: '🔥', condition: (ctx) => ctx.streak >= 3 },
+    { id: 'streak_7', name: 'Hafta Savaşçısı', description: '7 günlük seri!', icon: '⚔️', condition: (ctx) => ctx.streak >= 7 },
+    { id: 'streak_14', name: 'Alışkanlık Ustası', description: '14 gün aralıksız takip', icon: '🛡️', condition: (ctx) => ctx.streak >= 14 },
+    { id: 'streak_30', name: 'Demir İrade', description: '30 gün boyunca her gün!', icon: '💎', condition: (ctx) => ctx.streak >= 30 },
+    { id: 'streak_60', name: 'Altın Seri', description: '60 gün aralıksız! Efsane oluyorsun', icon: '👑', condition: (ctx) => ctx.streak >= 60 },
+    { id: 'streak_90', name: 'Platin Seri', description: '90 günlük seri — gerçek bir şampiyon!', icon: '🏆', condition: (ctx) => ctx.streak >= 90 },
     // Makro hedefleri
-    {
-        id: 'protein_master', name: 'Protein Şefi', description: 'Günlük protein hedefini tamamla',
-        icon: '🥩', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.targets.protein > 0
-    },
-    {
-        id: 'carb_loader', name: 'Enerji Deposu', description: 'Karbonhidrat hedefini doldur',
-        icon: '🍞', condition: (ctx) => ctx.consumed.carbs >= ctx.targets.carbs && ctx.targets.carbs > 0
-    },
-    {
-        id: 'fat_balance', name: 'Yağ Dengesi', description: 'Yağ hedefini yakala',
-        icon: '🥜', condition: (ctx) => ctx.consumed.fat >= ctx.targets.fat && ctx.targets.fat > 0
-    },
-    {
-        id: 'macro_perfect', name: 'Mükemmel Denge', description: 'Tüm makro hedeflerini aynı gün tamamla',
-        icon: '⚖️', condition: (ctx) =>
-            ctx.consumed.protein >= ctx.targets.protein &&
-            ctx.consumed.carbs >= ctx.targets.carbs &&
-            ctx.consumed.fat >= ctx.targets.fat &&
-            ctx.targets.protein > 0
-    },
+    { id: 'protein_master', name: 'Protein Şefi', description: 'Günlük protein hedefini tamamla', icon: '🥩', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.targets.protein > 0 },
+    { id: 'carb_loader', name: 'Enerji Deposu', description: 'Karbonhidrat hedefini doldur', icon: '🍞', condition: (ctx) => ctx.consumed.carbs >= ctx.targets.carbs && ctx.targets.carbs > 0 },
+    { id: 'fat_balance', name: 'Yağ Dengesi', description: 'Yağ hedefini yakala', icon: '🥜', condition: (ctx) => ctx.consumed.fat >= ctx.targets.fat && ctx.targets.fat > 0 },
+    { id: 'macro_perfect', name: 'Mükemmel Denge', description: 'Tüm makro hedeflerini aynı gün tamamla', icon: '⚖️', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.consumed.carbs >= ctx.targets.carbs && ctx.consumed.fat >= ctx.targets.fat && ctx.targets.protein > 0 },
     // Kalori hedefleri
-    {
-        id: 'cal_500', name: 'Başlangıç', description: 'Bir günde 500+ kcal kaydet',
-        icon: '📝', condition: (ctx) => ctx.consumed.calories >= 500
-    },
-    {
-        id: 'cal_1000', name: 'Bilinçli Beslenme', description: 'Bir günde 1000+ kcal kaydet',
-        icon: '📊', condition: (ctx) => ctx.consumed.calories >= 1000
-    },
-    {
-        id: 'cal_1500', name: 'Takip Uzmanı', description: 'Bir günde 1500+ kcal takip et',
-        icon: '🏅', condition: (ctx) => ctx.consumed.calories >= 1500
-    },
-    {
-        id: 'goal_reached', name: 'Hedefe Ulaştın!', description: 'Günlük kalori hedefini doldur',
-        icon: '🎯', condition: (ctx) => ctx.consumed.calories >= ctx.targets.calories && ctx.targets.calories > 0
-    },
+    { id: 'cal_500', name: 'Başlangıç', description: 'Bir günde 500+ kcal kaydet', icon: '📝', condition: (ctx) => ctx.consumed.calories >= 500 },
+    { id: 'cal_1000', name: 'Bilinçli Beslenme', description: 'Bir günde 1000+ kcal kaydet', icon: '📊', condition: (ctx) => ctx.consumed.calories >= 1000 },
+    { id: 'cal_1500', name: 'Takip Uzmanı', description: 'Bir günde 1500+ kcal takip et', icon: '🏅', condition: (ctx) => ctx.consumed.calories >= 1500 },
+    { id: 'cal_2000', name: 'Tam Gaz', description: 'Bir günde 2000+ kcal kayıt', icon: '🚀', condition: (ctx) => ctx.consumed.calories >= 2000 },
+    { id: 'goal_reached', name: 'Hedefe Ulaştın!', description: 'Günlük kalori hedefini doldur', icon: '🎯', condition: (ctx) => ctx.consumed.calories >= ctx.targets.calories && ctx.targets.calories > 0 },
     // Özel
-    {
-        id: 'early_bird', name: 'Erken Kuş', description: 'Sabah 8\'den önce öğün ekle',
-        icon: '🌅', condition: (ctx) => {
-            const hour = new Date().getHours();
-            return hour < 8 && ctx.consumed.calories > 0;
-        }
-    },
-    {
-        id: 'night_owl', name: 'Gece Kuşu', description: 'Gece 22\'den sonra kayıt yap',
-        icon: '🦉', condition: (ctx) => {
-            const hour = new Date().getHours();
-            return hour >= 22 && ctx.consumed.calories > 0;
-        }
-    },
+    { id: 'early_bird', name: 'Erken Kuş', description: 'Sabah 8\'den önce öğün ekle', icon: '🌅', condition: (ctx) => { const h = new Date().getHours(); return h < 8 && ctx.consumed.calories > 0; } },
+    { id: 'night_owl', name: 'Gece Kuşu', description: 'Gece 22\'den sonra kayıt yap', icon: '🦉', condition: (ctx) => { const h = new Date().getHours(); return h >= 22 && ctx.consumed.calories > 0; } },
+    // Yeni rozetler
+    { id: 'water_champ', name: 'Su Şampiyonu', description: 'Günde 8 bardak su iç', icon: '💧', condition: (ctx) => ctx.waterGlasses >= 8 },
+    { id: 'meal_logger_5', name: 'Kayıt Meraklısı', description: 'Bir günde 5 öğün kaydet', icon: '📋', condition: (ctx) => ctx.mealCount >= 5 },
+    { id: 'variety_king', name: 'Çeşitlilik Kralı', description: '4 farklı öğün kategorisi kullan', icon: '🌈', condition: (ctx) => ctx.categoryCount >= 4 },
+    { id: 'weekend_warrior', name: 'Hafta Sonu Savaşçısı', description: 'Hafta sonu da takip et', icon: '🗓️', condition: (ctx) => { const d = new Date().getDay(); return (d === 0 || d === 6) && ctx.consumed.calories > 0; } },
+    { id: 'breakfast_lover', name: 'Kahvaltı Aşığı', description: 'Sabah 10\'dan önce öğün ekle', icon: '🥞', condition: (ctx) => { const h = new Date().getHours(); return h < 10 && ctx.consumed.calories > 0; } },
+    { id: 'light_eater', name: 'Hafif Öğün', description: '300 kcal altı bir öğün kaydet', icon: '🥗', condition: (ctx) => ctx.hasLightMeal },
 ];
 
 type UserProfile = {
@@ -103,6 +58,7 @@ type UserProfile = {
     activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'extra';
     goal?: 'lose' | 'maintain' | 'gain';
     targetWeight?: string;
+    bodyType?: 'ectomorph' | 'mesomorph' | 'endomorph' | 'unsure';
 };
 
 export type MealCategory = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -140,7 +96,7 @@ type CalorieContextType = {
     streak: number;
     earnedBadges: string[];
     mealHistory: MealEntry[];
-    newlyEarnedBadge: Badge | null;
+    badgeQueue: Badge[];
     onboardingComplete: boolean;
     isLoading: boolean;
     waterGlasses: number;
@@ -200,7 +156,7 @@ const CalorieContext = createContext<CalorieContextType>({
     streak: 0,
     earnedBadges: [],
     mealHistory: [],
-    newlyEarnedBadge: null,
+    badgeQueue: [],
     onboardingComplete: false,
     isLoading: true,
     waterGlasses: 0,
@@ -234,7 +190,7 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
     const [lastLogDate, setLastLogDate] = useState<string | null>(null);
     const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
     const [mealHistory, setMealHistory] = useState<MealEntry[]>([]);
-    const [newlyEarnedBadge, setNewlyEarnedBadge] = useState<Badge | null>(null);
+    const [badgeQueue, setBadgeQueue] = useState<Badge[]>([]);
     const [onboardingComplete, setOnboardingComplete] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -386,13 +342,11 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
 
         const tdee = Math.round(bmr * multipliers[profile.activityLevel]);
 
-        // F24: Apply goal-based calorie adjustment
-        const goalAdjustment = {
-            lose: -300,
-            maintain: 0,
-            gain: 300,
-        };
-        const targetCalories = tdee + (goalAdjustment[profile.goal || 'maintain']);
+        // Apply goal-based calorie adjustment
+        const goalAdjustment = { lose: -300, maintain: 0, gain: 300 };
+        // Apply body type adjustment
+        const bodyTypeAdjustment = { ectomorph: 200, mesomorph: 0, endomorph: -200, unsure: 0 };
+        const targetCalories = tdee + (goalAdjustment[profile.goal || 'maintain']) + (bodyTypeAdjustment[profile.bodyType || 'unsure']);
 
         const newTargets = {
             calories: targetCalories,
@@ -412,8 +366,19 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
         persist(STORAGE_KEYS.ONBOARDING, 'true');
     };
 
-    const checkBadges = (currentConsumed: Nutrients, currentStreak: number) => {
-        const contextMock = { consumed: currentConsumed, streak: currentStreak, targets };
+    const checkBadges = (currentConsumed: Nutrients, currentStreak: number, currentMealHistory?: MealEntry[]) => {
+        const meals = currentMealHistory || mealHistory;
+        const categorySet = new Set(meals.map(m => m.category).filter(Boolean));
+        const hasLightMeal = meals.some(m => m.nutrients.calories > 0 && m.nutrients.calories < 300);
+        const contextMock = {
+            consumed: currentConsumed,
+            streak: currentStreak,
+            targets,
+            waterGlasses,
+            mealCount: meals.length,
+            categoryCount: categorySet.size,
+            hasLightMeal,
+        };
 
         const newBadges: string[] = [];
         BADGES.forEach(badge => {
@@ -426,13 +391,13 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
             const updated = [...earnedBadges, ...newBadges];
             setEarnedBadges(updated);
             persist(STORAGE_KEYS.BADGES, updated);
-            // Show notification for first new badge
-            const badge = BADGES.find(b => b.id === newBadges[0]);
-            if (badge) setNewlyEarnedBadge(badge);
+            // Queue ALL new badges for sequential display
+            const badgeObjects = newBadges.map(id => BADGES.find(b => b.id === id)!).filter(Boolean);
+            setBadgeQueue(prev => [...prev, ...badgeObjects]);
         }
     };
 
-    const clearNewBadge = () => setNewlyEarnedBadge(null);
+    const clearNewBadge = () => setBadgeQueue(prev => prev.slice(1));
 
     const addMeal = (meal: Nutrients, name?: string, category?: MealCategory) => {
         const today = new Date().toISOString().split('T')[0];
@@ -486,7 +451,7 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
             [STORAGE_KEYS.ALL_MEALS, JSON.stringify(newAllMeals)],
         ]).catch(e => console.error('Failed to batch-persist addMeal:', e));
 
-        checkBadges(newConsumed, newStreak);
+        checkBadges(newConsumed, newStreak, newHistory);
     };
 
     const removeMeal = (id: string) => {
@@ -562,7 +527,7 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
     };
 
     return (
-        <CalorieContext.Provider value={{ consumed, targets, userProfile, streak, earnedBadges, mealHistory, newlyEarnedBadge, onboardingComplete, isLoading, waterGlasses, waterTarget, dailyHistory, favorites, allMeals, updateProfile, addMeal, removeMeal, clearNewBadge, addWater, removeWater, toggleFavorite, isFavorite, addMealForDate, getMealsForDate }}>
+        <CalorieContext.Provider value={{ consumed, targets, userProfile, streak, earnedBadges, mealHistory, badgeQueue, onboardingComplete, isLoading, waterGlasses, waterTarget, dailyHistory, favorites, allMeals, updateProfile, addMeal, removeMeal, clearNewBadge, addWater, removeWater, toggleFavorite, isFavorite, addMealForDate, getMealsForDate }}>
             {children}
         </CalorieContext.Provider>
     );

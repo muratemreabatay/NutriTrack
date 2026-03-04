@@ -13,6 +13,7 @@ export type RootStackParamList = {
             protein: number;
             carbs: number;
             fat: number;
+            comment?: string;
         };
     };
     Profile: undefined;

@@ -11,19 +11,25 @@ import { hapticLight, hapticSuccess } from '../utils/haptics';
 const { width } = Dimensions.get('window');
 
 const STEPS = [
-    { title: 'Hedefini Belirle', subtitle: 'Sana en uygun planı oluşturalım', icon: '🎯' },
-    { title: 'Kendini Tanıt', subtitle: 'Doğru hesaplama için bize biraz bilgi ver', icon: '👤' },
-    { title: 'Ölçülerini Gir', subtitle: 'Kişiselleştirilmiş hedefler için gerekli', icon: '📏' },
-    { title: 'Aktivite Seviyeni Seç', subtitle: 'Günlük enerji ihtiyacını hesaplayalım', icon: '⚡' },
+    { title: 'Hedefini Belirle', subtitle: 'Sana en uygun plani olusturalim', icon: '🎯' },
+    { title: 'Vucut Tipini Sec', subtitle: 'Metabolizma hizini anlamamiza yardimci olur', icon: '🧬' },
+    { title: 'Kendini Tanit', subtitle: 'Dogru hesaplama icin bize biraz bilgi ver', icon: '👤' },
+    { title: 'Olculerini Gir', subtitle: 'Kisisellestrilmis hedefler icin gerekli', icon: '📏' },
+    { title: 'Aktivite Seviyeni Sec', subtitle: 'Gunluk enerji ihtiyacini hesaplayalim', icon: '⚡' },
 ];
 
 const GOALS = [
-    { id: 'lose' as const, label: 'Kilo Ver', icon: '🔥', desc: 'Sağlıklı şekilde kilo ver', color: '#F87171' },
+    { id: 'lose' as const, label: 'Kilo Ver', icon: '🔥', desc: 'Saglikli sekilde kilo ver', color: '#F87171' },
     { id: 'maintain' as const, label: 'Kilonu Koru', icon: '⚖️', desc: 'Mevcut kilomu korumak istiyorum', color: '#34D399' },
-    { id: 'gain' as const, label: 'Kilo Al', icon: '💪', desc: 'Kas kütlesi ve kilo kazanımı', color: '#60A5FA' },
+    { id: 'gain' as const, label: 'Kilo Al', icon: '💪', desc: 'Kas kutlesi ve kilo kazanimi', color: '#60A5FA' },
 ];
 
-
+const BODY_TYPES = [
+    { id: 'ectomorph' as const, label: 'Ektomorf', icon: '🏃', desc: 'Kilo almakta zorlaniyorum', color: '#60A5FA' },
+    { id: 'mesomorph' as const, label: 'Mezomorf', icon: '⚖️', desc: 'Kolayca kilo alip verebiliyorum', color: '#34D399' },
+    { id: 'endomorph' as const, label: 'Endomorf', icon: '🐻', desc: 'Kilo vermekte zorlaniyorum', color: '#F87171' },
+    { id: 'unsure' as const, label: 'Yeniyim', icon: '🤔', desc: 'Bu iste yeniyim ve bilmiyorum', color: '#A78BFA' },
+];
 
 const SmartOnboardingScreen = () => {
     const navigation = useNavigation();
@@ -31,6 +37,7 @@ const SmartOnboardingScreen = () => {
 
     const [step, setStep] = useState(0);
     const [goal, setGoal] = useState<'lose' | 'maintain' | 'gain'>('lose');
+    const [bodyType, setBodyType] = useState<'ectomorph' | 'mesomorph' | 'endomorph' | 'unsure'>('unsure');
     const [gender, setGender] = useState<'male' | 'female'>('male');
     const [activityLevel, setActivityLevel] = useState<'sedentary' | 'light' | 'moderate' | 'active' | 'extra'>('moderate');
     const [age, setAge] = useState(25);
@@ -42,7 +49,7 @@ const SmartOnboardingScreen = () => {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(1)).current;
-    const progressAnim = useRef(new Animated.Value(0.25)).current;
+    const progressAnim = useRef(new Animated.Value(0.2)).current;
     const contentAnim = useRef(new Animated.Value(1)).current;
     const buttonPulse = useRef(new Animated.Value(1)).current;
     const [showCelebration, setShowCelebration] = useState(false);
@@ -105,6 +112,7 @@ const SmartOnboardingScreen = () => {
                 activityLevel,
                 goal,
                 targetWeight: String(targetWeight),
+                bodyType,
             });
             navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
         });
@@ -144,6 +152,33 @@ const SmartOnboardingScreen = () => {
             case 1:
                 return (
                     <View className="mt-6">
+                        {BODY_TYPES.map((b) => (
+                            <TouchableOpacity
+                                key={b.id}
+                                onPress={() => setBodyType(b.id)}
+                                activeOpacity={0.7}
+                                className={`flex-row items-center p-5 rounded-2xl border-2 mb-3 ${bodyType === b.id ? 'border-primary bg-primary/10' : 'border-gray-800 bg-surface'}`}
+                            >
+                                <View className="w-12 h-12 rounded-xl items-center justify-center mr-4" style={{ backgroundColor: b.color + '20' }}>
+                                    <Text style={{ fontSize: 24 }}>{b.icon}</Text>
+                                </View>
+                                <View className="flex-1">
+                                    <Text className={`font-bold text-base ${bodyType === b.id ? 'text-primary' : 'text-white'}`}>{b.label}</Text>
+                                    <Text className="text-gray-500 text-xs mt-1">{b.desc}</Text>
+                                </View>
+                                {bodyType === b.id && (
+                                    <View className="w-6 h-6 bg-primary rounded-full items-center justify-center">
+                                        <Text className="text-black text-xs font-bold">✓</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                );
+
+            case 2:
+                return (
+                    <View className="mt-6">
                         {/* Gender */}
                         <Text className="text-gray-400 text-xs uppercase tracking-wider mb-3 ml-1">Cinsiyet</Text>
                         <View className="flex-row mb-8" style={{ gap: 12 }}>
@@ -161,16 +196,16 @@ const SmartOnboardingScreen = () => {
                                 className={`flex-1 p-5 rounded-2xl border-2 items-center ${gender === 'female' ? 'border-pink-400 bg-pink-400/10' : 'border-gray-800 bg-surface'}`}
                             >
                                 <Text style={{ fontSize: 40 }}>👩</Text>
-                                <Text className={`font-bold mt-2 ${gender === 'female' ? 'text-pink-400' : 'text-gray-400'}`}>Kadın</Text>
+                                <Text className={`font-bold mt-2 ${gender === 'female' ? 'text-pink-400' : 'text-gray-400'}`}>Kadin</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Age */}
-                        <RulerPicker label="Yaş" value={age} setValue={setAge} min={12} max={100} unit="yıl" />
+                        <RulerPicker label="Yas" value={age} setValue={setAge} min={12} max={100} unit="yil" />
                     </View>
                 );
 
-            case 2:
+            case 3:
                 return (
                     <View className="mt-6">
                         <RulerPicker label="Boy" value={height} setValue={setHeight} min={100} max={250} unit="cm" />
@@ -179,7 +214,7 @@ const SmartOnboardingScreen = () => {
                     </View>
                 );
 
-            case 3:
+            case 4:
                 return (
                     <View className="mt-4">
                         {ACTIVITY_LEVELS.map((item) => (
@@ -270,7 +305,7 @@ const SmartOnboardingScreen = () => {
                         style={{ shadowColor: '#34D399', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 16 }}
                     >
                         <Text className="text-black font-bold text-lg">
-                            {step < STEPS.length - 1 ? 'Devam Et' : 'Başlayalım!'}
+                            {step < STEPS.length - 1 ? 'Devam Et' : 'Baslayalim!'}
                         </Text>
                         <Text className="text-black text-lg ml-2">{step < STEPS.length - 1 ? '→' : '🚀'}</Text>
                     </TouchableOpacity>
@@ -282,7 +317,7 @@ const SmartOnboardingScreen = () => {
                 <View className="absolute top-0 bottom-0 left-0 right-0 h-full w-full items-center justify-center bg-black/60 z-50">
                     <Text style={{ fontSize: 64 }}>🎉</Text>
                     <Text className="text-white text-2xl font-bold mt-4">Harika!</Text>
-                    <Text className="text-gray-300 text-base mt-2">Planın hazırlanıyor...</Text>
+                    <Text className="text-gray-300 text-base mt-2">Planin hazirlaniyor...</Text>
                 </View>
             )}
         </SafeAreaView>

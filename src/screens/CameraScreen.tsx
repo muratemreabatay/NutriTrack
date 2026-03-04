@@ -8,16 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Randomized AI predictions for fallback
-const FALLBACK_PREDICTIONS = [
-    { name: 'Izgara Somon & Salata', calories: 520, protein: 45, carbs: 12, fat: 28 },
-    { name: 'Tavuk Döner', calories: 480, protein: 32, carbs: 38, fat: 22 },
-    { name: 'Mercimek Çorbası & Ekmek', calories: 280, protein: 14, carbs: 42, fat: 6 },
-    { name: 'Lahmacun', calories: 350, protein: 18, carbs: 40, fat: 12 },
-    { name: 'Karışık Izgara Tabağı', calories: 650, protein: 55, carbs: 8, fat: 42 },
-];
 
 // Google Gemini API Key
 const googleAiKey = process.env.EXPO_PUBLIC_GOOGLE_AI_KEY;
@@ -50,17 +40,18 @@ const CameraScreen = () => {
 
         // Guard against missing API key
         if (!googleAiKey) {
-            const fallback = FALLBACK_PREDICTIONS[Math.floor(Math.random() * FALLBACK_PREDICTIONS.length)];
-            Alert.alert('API Anahtarı Eksik', 'Google AI API anahtarı .env dosyasında bulunamadı.\n\nDemo sonucu kullanılıyor.');
+            Alert.alert('API Anahtarı Eksik', 'Google AI API anahtarı .env dosyasında bulunamadı.');
             setScanning(false);
             scanAnimation.stop();
-            hapticSuccess();
-            navigation.navigate('MealDetail', { photoUri: uri, prediction: fallback });
             return;
         }
 
+        // 30-second timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
         try {
-            // Resize and compress image before sending to reduce memory usage
+            // Resize and compress image before sending
             const manipulated = await ImageManipulator.manipulateAsync(
                 uri,
                 [{ resize: { width: 1024 } }],
@@ -68,36 +59,77 @@ const CameraScreen = () => {
             );
             const base64Image = await FileSystem.readAsStringAsync(manipulated.uri, { encoding: 'base64' });
 
-            const prompt = `Sen uzman bir diyetisyensin. Bu fotoğraftaki yemeğin ne olduğunu tahmin et ve besin değerlerini (ortalama bir porsiyon için) döndür.
-SADECE JSON FORMATINDA YANIT VER. Markdown kullanma (yani \`\`\`json vs. yazma), sadece geçerli bir JSON objesi döndür.
-Eğer fotoğrafta yemek yoksa tahmini bir yemek uydurma, "Belirsiz" gibi bir isim ver ve değerlere 0 yaz.
+            const prompt = `Sen esprili ve samimi bir diyetisyensin. Bu fotoğraftaki yemeği tanı ve besin değerlerini (ortalama porsiyon) döndür.
+SADECE JSON FORMATINDA YANIT VER. Markdown kullanma, sadece geçerli bir JSON objesi döndür.
+Eğer fotoğrafta yemek yoksa "Belirsiz" yaz, değerlere 0 ver ve comment'te ne gördüğünü esprili şekilde açıkla.
+comment alanında kısa, esprili ve samimi bir yorum yap (emoji kullanabilirsin). Abartma ama eğlenceli ol.
 Beklenen JSON formatı:
 {
-  "name": "Yemek Adı (Örn: Izgara Tavuk ve Pilav)",
+  "name": "Yemek Adı",
   "calories": 400,
   "protein": 20,
   "carbs": 30,
-  "fat": 15
+  "fat": 15,
+  "comment": "Esprili ve samimi bir AI yorumu 😋"
 }`;
 
-            // Google Gemini API call
-            const genAI = new GoogleGenerativeAI(googleAiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            // Direct REST API call to Gemini (compatible with React Native)
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleAiKey}`;
 
-            const result = await model.generateContent([
-                prompt,
-                {
-                    inlineData: {
-                        mimeType: 'image/jpeg',
-                        data: base64Image,
-                    },
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                signal: controller.signal,
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-            ]);
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                { text: prompt },
+                                {
+                                    inlineData: {
+                                        mimeType: 'image/jpeg',
+                                        data: base64Image,
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                    generationConfig: {
+                        temperature: 0.4,
+                        maxOutputTokens: 2048,
+                    },
+                }),
+            });
 
-            const responseText = result.response.text();
+            clearTimeout(timeout);
 
-            // Clean markdown formatting if Gemini included it despite instructions
-            const cleanedText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            if (!response.ok) {
+                const errBody = await response.text();
+                console.error('Gemini API Error Response:', response.status, errBody);
+                throw new Error(`Gemini API Hatası: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Gemini 2.5-flash is a thinking model - it may return multiple parts
+            // The actual content is in the last text part (thinking comes first)
+            const parts = data?.candidates?.[0]?.content?.parts || [];
+            const textParts = parts.filter((p: any) => p.text).map((p: any) => p.text);
+            const rawText = textParts[textParts.length - 1] || textParts[0] || '';
+
+            console.log('Gemini raw response:', rawText.substring(0, 200));
+
+            // Clean and extract JSON robustly
+            let cleanedText = rawText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+            // Try to find JSON object in the text if it contains extra content
+            const jsonMatch = cleanedText.match(/\{[\s\S]*"name"[\s\S]*"calories"[\s\S]*\}/);
+            if (jsonMatch) {
+                cleanedText = jsonMatch[0];
+            }
+
             const prediction = JSON.parse(cleanedText);
 
             setScanning(false);
@@ -109,23 +141,20 @@ Beklenen JSON formatı:
                 prediction,
             });
         } catch (error: any) {
+            clearTimeout(timeout);
             console.error('AI Scan Error:', error);
 
-            const fallback = FALLBACK_PREDICTIONS[Math.floor(Math.random() * FALLBACK_PREDICTIONS.length)];
+            const isTimeout = error?.name === 'AbortError';
 
             Alert.alert(
-                'AI Analiz Hatası',
-                'Google AI servisine bağlanırken bir hata oluştu.\n\nDemo sonucu kullanılıyor.'
+                isTimeout ? 'Zaman Aşımı' : 'AI Analiz Hatası',
+                isTimeout
+                    ? 'AI servisi 30 saniye içinde yanıt vermedi. Lütfen tekrar deneyin.'
+                    : `Google AI servisine bağlanırken hata oluştu.\n\n${error?.message || 'Bilinmeyen hata'}`
             );
 
             setScanning(false);
             scanAnimation.stop();
-            hapticSuccess();
-
-            navigation.navigate('MealDetail', {
-                photoUri: uri,
-                prediction: fallback,
-            });
         }
     };
 

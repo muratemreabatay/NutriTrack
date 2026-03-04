@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useCalories } from '../context/CalorieContext';
 import { RootStackParamList } from '../navigation/types';
 import { hapticSuccess } from '../utils/haptics';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 380;
 
 const MealDetailScreen = () => {
     const navigation = useNavigation();
@@ -20,7 +23,8 @@ const MealDetailScreen = () => {
         calories: 450,
         protein: 42,
         carbs: 55,
-        fat: 8
+        fat: 8,
+        comment: 'Yemek analiz edildi.'
     };
 
     return (
@@ -29,73 +33,117 @@ const MealDetailScreen = () => {
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Top Image Area */}
-                <View className="relative h-72 w-full">
+                <View style={{ position: 'relative', height: SCREEN_WIDTH * 0.7, width: '100%' }}>
                     {photoUri ? (
-                        <Image source={{ uri: photoUri }} className="w-full h-full" resizeMode="cover" />
+                        <Image source={{ uri: photoUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                     ) : (
-                        <View className="w-full h-full bg-gray-800 items-center justify-center">
-                            <Text className="text-gray-500">Fotoğraf Yok</Text>
+                        <View style={{ width: '100%', height: '100%', backgroundColor: '#1F2937', alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ color: '#6B7280' }}>Fotoğraf Yok</Text>
                         </View>
                     )}
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
-                        className="absolute top-4 left-4 w-10 h-10 bg-black/50 rounded-full items-center justify-center"
+                        style={{
+                            position: 'absolute', top: 16, left: 16,
+                            width: 40, height: 40, backgroundColor: 'rgba(0,0,0,0.5)',
+                            borderRadius: 20, alignItems: 'center', justifyContent: 'center'
+                        }}
                     >
-                        <Text className="text-white text-xl">✕</Text>
+                        <Text style={{ color: '#fff', fontSize: 20 }}>✕</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Content */}
-                <View className="px-6 -mt-10 pt-10 bg-[#030712] rounded-t-[40px] shadow-2xl">
-                    {/* Header */}
-                    <View className="flex-row justify-between items-start mb-6">
-                        <View>
-                            <View className="bg-primary/20 px-3 py-1 rounded-full self-start mb-2">
-                                <Text className="text-primary text-xs font-bold uppercase">AI Tespiti</Text>
+                <View style={{
+                    paddingHorizontal: 20,
+                    marginTop: -40,
+                    paddingTop: 40,
+                    backgroundColor: '#030712',
+                    borderTopLeftRadius: 40,
+                    borderTopRightRadius: 40,
+                }}>
+                    {/* Header - name + calories */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: 20,
+                    }}>
+                        {/* Left: Badge + Name */}
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                            <View style={{
+                                backgroundColor: 'rgba(52,211,153,0.2)',
+                                paddingHorizontal: 12, paddingVertical: 4,
+                                borderRadius: 20, alignSelf: 'flex-start', marginBottom: 8
+                            }}>
+                                <Text style={{ color: '#34D399', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>AI Tespiti</Text>
                             </View>
-                            <Text className="text-white text-3xl font-bold">{data.name}</Text>
-                            <Text className="text-gray-400 text-sm mt-1">Orta Porsiyon (200g)</Text>
+                            <Text style={{
+                                color: '#fff',
+                                fontSize: isSmallScreen ? 22 : 26,
+                                fontWeight: 'bold',
+                                flexWrap: 'wrap',
+                            }}>{data.name}</Text>
+                            <Text style={{ color: '#9CA3AF', fontSize: 13, marginTop: 4 }}>Orta Porsiyon</Text>
                         </View>
-                        <View className="items-end">
-                            <Text className="text-4xl font-bold text-white">{data.calories}</Text>
-                            <Text className="text-gray-400 text-sm">kcal</Text>
+
+                        {/* Right: Calories */}
+                        <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
+                            <Text style={{
+                                fontSize: isSmallScreen ? 32 : 38,
+                                fontWeight: 'bold',
+                                color: '#fff',
+                            }}>{data.calories}</Text>
+                            <Text style={{ color: '#9CA3AF', fontSize: 13 }}>kcal</Text>
                         </View>
                     </View>
 
                     {/* Macros */}
-                    <View className="flex-row justify-between mb-8">
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, gap: 8 }}>
                         {/* Protein */}
-                        <View className="bg-gray-900 flex-1 mr-2 p-4 rounded-2xl border border-gray-800 items-center">
-                            <Text className="text-2xl">🥩</Text>
-                            <Text className="text-white font-bold text-lg mt-2">{data.protein}g</Text>
-                            <Text className="text-gray-500 text-xs">Protein</Text>
+                        <View style={{
+                            flex: 1, backgroundColor: '#111827', padding: 16,
+                            borderRadius: 16, borderWidth: 1, borderColor: '#1F2937', alignItems: 'center'
+                        }}>
+                            <Text style={{ fontSize: 24 }}>🥩</Text>
+                            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, marginTop: 8 }}>{data.protein}g</Text>
+                            <Text style={{ color: '#6B7280', fontSize: 12 }}>Protein</Text>
                         </View>
                         {/* Carbs */}
-                        <View className="bg-gray-900 flex-1 mx-2 p-4 rounded-2xl border border-gray-800 items-center">
-                            <Text className="text-2xl">🍚</Text>
-                            <Text className="text-white font-bold text-lg mt-2">{data.carbs}g</Text>
-                            <Text className="text-gray-500 text-xs">Karbonh.</Text>
+                        <View style={{
+                            flex: 1, backgroundColor: '#111827', padding: 16,
+                            borderRadius: 16, borderWidth: 1, borderColor: '#1F2937', alignItems: 'center'
+                        }}>
+                            <Text style={{ fontSize: 24 }}>🍚</Text>
+                            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, marginTop: 8 }}>{data.carbs}g</Text>
+                            <Text style={{ color: '#6B7280', fontSize: 12 }}>Karbonh.</Text>
                         </View>
                         {/* Fat */}
-                        <View className="bg-gray-900 flex-1 ml-2 p-4 rounded-2xl border border-gray-800 items-center">
-                            <Text className="text-2xl">🥑</Text>
-                            <Text className="text-white font-bold text-lg mt-2">{data.fat}g</Text>
-                            <Text className="text-gray-500 text-xs">Yağ</Text>
+                        <View style={{
+                            flex: 1, backgroundColor: '#111827', padding: 16,
+                            borderRadius: 16, borderWidth: 1, borderColor: '#1F2937', alignItems: 'center'
+                        }}>
+                            <Text style={{ fontSize: 24 }}>🥑</Text>
+                            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, marginTop: 8 }}>{data.fat}g</Text>
+                            <Text style={{ color: '#6B7280', fontSize: 12 }}>Yağ</Text>
                         </View>
                     </View>
 
-                    <View className="bg-gray-900 p-4 rounded-2xl border border-gray-800 mb-20">
-                        <Text className="text-gray-400 text-sm mb-3">AI Açıklaması</Text>
-                        <Text className="text-gray-300 leading-relaxed">
-                            Görüntüde ızgara tavuk göğsü ve yanında az yağlı pirinç pilavı tespit edildi. Porsiyon boyutu standart bir öğün olarak hesaplandı.
+                    {/* AI Comment */}
+                    <View style={{
+                        backgroundColor: '#111827', padding: 16,
+                        borderRadius: 16, borderWidth: 1, borderColor: '#1F2937', marginBottom: 100
+                    }}>
+                        <Text style={{ color: '#9CA3AF', fontSize: 13, marginBottom: 10 }}>🤖 AI Yorumu</Text>
+                        <Text style={{ color: '#D1D5DB', fontSize: 15, lineHeight: 22 }}>
+                            {data.comment || 'Yemek analiz edildi.'}
                         </Text>
                     </View>
-
                 </View>
             </ScrollView>
 
             {/* Floating Action Button (Confirm) */}
-            <View className="absolute bottom-6 left-6 right-6">
+            <View style={{ position: 'absolute', bottom: 24, left: 20, right: 20 }}>
                 <TouchableOpacity
                     onPress={() => {
                         addMeal({
@@ -107,9 +155,18 @@ const MealDetailScreen = () => {
                         hapticSuccess();
                         navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
                     }}
-                    className="bg-primary py-4 rounded-full items-center shadow-[0_0_20px_rgba(0,255,136,0.3)] shadow-primary/30"
+                    style={{
+                        backgroundColor: '#34D399',
+                        paddingVertical: 16,
+                        borderRadius: 28,
+                        alignItems: 'center',
+                        shadowColor: '#34D399',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.4,
+                        shadowRadius: 16,
+                    }}
                 >
-                    <Text className="text-black font-extrabold text-lg tracking-wide">ÖĞÜNÜ EKLE ✓</Text>
+                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 17, letterSpacing: 1 }}>ÖĞÜNÜ EKLE ✓</Text>
                 </TouchableOpacity>
             </View>
 

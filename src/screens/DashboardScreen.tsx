@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Animated, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 380;
+const ringSize = Math.min(SCREEN_WIDTH * 0.4, 170);
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
@@ -34,7 +38,7 @@ const getMotivation = (progress: number): string => {
 
 const DashboardScreen = () => {
     const navigation = useNavigation();
-    const { consumed, targets, streak, mealHistory, removeMeal, newlyEarnedBadge, clearNewBadge, waterGlasses, waterTarget, dailyHistory } = useCalories();
+    const { consumed, targets, streak, mealHistory, removeMeal, badgeQueue, clearNewBadge, waterGlasses, waterTarget, dailyHistory } = useCalories();
 
     // Animations
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -65,7 +69,7 @@ const DashboardScreen = () => {
     }, [progress, hasCelebrated]);
 
     // Circle Config
-    const radius = 75;
+    const radius = (ringSize / 2) - 10;
     const strokeWidth = 14;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - progress * circumference;
@@ -116,37 +120,37 @@ const DashboardScreen = () => {
                     style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}
                     className="mx-6 mt-4 bg-surface rounded-3xl p-6 border border-gray-800"
                 >
-                    <View className="flex-row items-center">
-                        {/* Ring */}
-                        <View className="relative w-[170px] h-[170px] items-center justify-center">
-                            <Svg height="170" width="170" viewBox="0 0 170 170" style={{ position: 'absolute' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {/* Ring - responsive size */}
+                        <View style={{ position: 'relative', width: ringSize, height: ringSize, alignItems: 'center', justifyContent: 'center' }}>
+                            <Svg height={ringSize} width={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ position: 'absolute' }}>
                                 <Circle
-                                    cx="85" cy="85" r={radius}
+                                    cx={ringSize / 2} cy={ringSize / 2} r={radius}
                                     stroke="#1F2937" strokeWidth={strokeWidth} fill="transparent"
                                 />
                                 <Circle
-                                    cx="85" cy="85" r={radius}
+                                    cx={ringSize / 2} cy={ringSize / 2} r={radius}
                                     stroke={progress >= 1 ? '#FBBF24' : '#34D399'}
                                     strokeWidth={strokeWidth} fill="transparent"
                                     strokeDasharray={circumference}
                                     strokeDashoffset={strokeDashoffset}
                                     strokeLinecap="round"
-                                    rotation="-90" origin="85, 85"
+                                    rotation="-90" origin={`${ringSize / 2}, ${ringSize / 2}`}
                                 />
                             </Svg>
-                            <View className="items-center">
-                                <Text className="text-white text-3xl font-bold">{consumed.calories}</Text>
-                                <Text className="text-gray-500 text-xs mt-1">yenildi</Text>
+                            <View style={{ alignItems: 'center' }}>
+                                <Text style={{ color: '#fff', fontSize: isSmallScreen ? 24 : 28, fontWeight: 'bold' }}>{consumed.calories}</Text>
+                                <Text style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>yenildi</Text>
                             </View>
                         </View>
 
                         {/* Stats */}
-                        <View className="flex-1 ml-4">
-                            <View className="mb-4">
+                        <View style={{ flex: 1, marginLeft: 16 }}>
+                            <View style={{ marginBottom: 16 }}>
                                 <Text className="text-gray-500 text-xs uppercase tracking-wider">Hedef</Text>
                                 <Text className="text-white text-xl font-bold">{targets.calories}</Text>
                             </View>
-                            <View className="mb-4">
+                            <View style={{ marginBottom: 16 }}>
                                 <Text className="text-gray-500 text-xs uppercase tracking-wider">Kalan</Text>
                                 <Text className="text-primary text-xl font-bold">{remaining}</Text>
                             </View>
@@ -285,7 +289,7 @@ const DashboardScreen = () => {
             </View>
 
             {/* BADGE EARNED MODAL */}
-            {newlyEarnedBadge && (
+            {badgeQueue.length > 0 && (
                 <View className="absolute top-0 bottom-0 left-0 right-0 h-full w-full bg-black/80 items-center justify-center z-50">
                     <Animated.View
                         style={{ transform: [{ scale: scaleAnim }] }}
@@ -293,13 +297,18 @@ const DashboardScreen = () => {
                     >
                         <Text className="text-5xl mb-2">🏆</Text>
                         <View className="w-16 h-16 bg-primary/20 rounded-full items-center justify-center mb-3">
-                            <Text className="text-3xl">{newlyEarnedBadge.icon}</Text>
+                            <Text className="text-3xl">{badgeQueue[0].icon}</Text>
                         </View>
+                        {badgeQueue.length > 1 && (
+                            <View style={{ backgroundColor: 'rgba(52,211,153,0.2)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, marginBottom: 4 }}>
+                                <Text style={{ color: '#34D399', fontSize: 11, fontWeight: 'bold' }}>1 / {badgeQueue.length}</Text>
+                            </View>
+                        )}
                         <Text className="text-primary text-xs font-bold uppercase tracking-wider mb-1">Yeni Rozet!</Text>
-                        <Text className="text-white text-xl font-bold text-center mb-1">{newlyEarnedBadge.name}</Text>
-                        <Text className="text-gray-400 text-center text-sm mb-6">{newlyEarnedBadge.description}</Text>
+                        <Text className="text-white text-xl font-bold text-center mb-1">{badgeQueue[0].name}</Text>
+                        <Text className="text-gray-400 text-center text-sm mb-6">{badgeQueue[0].description}</Text>
                         <TouchableOpacity onPress={clearNewBadge} className="bg-primary px-8 py-3 rounded-full">
-                            <Text className="text-black font-bold">HARİKA!</Text>
+                            <Text className="text-black font-bold">{badgeQueue.length > 1 ? 'SONRAKİ →' : 'HARİKA!'}</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </View>
