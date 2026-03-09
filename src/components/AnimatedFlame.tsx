@@ -37,7 +37,7 @@ const getFlameConfig = (streak: number): FlameConfig => {
         hasParticles: true,
         hasMultiFlame: true,
         flickerSpeed: 120,
-        label: 'Efsanevi',
+        label: '',
     };
     if (streak >= 14) return {
         color: '#F59E0B',
@@ -49,7 +49,7 @@ const getFlameConfig = (streak: number): FlameConfig => {
         hasParticles: true,
         hasMultiFlame: false,
         flickerSpeed: 150,
-        label: 'Süper',
+        label: '',
     };
     if (streak >= 7) return {
         color: '#EF4444',
@@ -61,7 +61,7 @@ const getFlameConfig = (streak: number): FlameConfig => {
         hasParticles: false,
         hasMultiFlame: false,
         flickerSpeed: 200,
-        label: 'Ateşli',
+        label: '',
     };
     if (streak >= 3) return {
         color: '#F97316',
@@ -73,7 +73,7 @@ const getFlameConfig = (streak: number): FlameConfig => {
         hasParticles: false,
         hasMultiFlame: false,
         flickerSpeed: 300,
-        label: 'İyi',
+        label: '',
     };
     return {
         color: '#6B7280',

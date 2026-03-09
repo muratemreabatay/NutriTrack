@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { CalorieProvider } from './src/context/CalorieContext';
+import { LanguageProvider } from './src/i18n/LanguageContext';
 import './global.css';
 import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -18,14 +19,16 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <CalorieProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <AppNavigator />
-            <StatusBar style="light" />
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </CalorieProvider>
+      <LanguageProvider>
+        <CalorieProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <AppNavigator />
+              <StatusBar style="light" />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </CalorieProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }

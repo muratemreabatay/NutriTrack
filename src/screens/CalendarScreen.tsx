@@ -3,16 +3,20 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Animated, Keyboard
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useCalories, MealCategory } from '../context/CalorieContext';
-import { QUICK_FOODS, MEAL_CATEGORIES, FoodItem } from '../constants';
+import { useLanguage } from '../i18n/LanguageContext';
+import { getQuickFoods, resolveFoodName, FoodItem } from '../constants';
 import { hapticSelection, hapticSuccess, hapticLight } from '../utils/haptics';
 
-const DAY_NAMES = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-const MONTH_NAMES = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-
+const CATEGORY_DEFS = [
+    { id: 'breakfast' as MealCategory, icon: '🌅' },
+    { id: 'lunch' as MealCategory, icon: '☀️' },
+    { id: 'dinner' as MealCategory, icon: '🌙' },
+    { id: 'snack' as MealCategory, icon: '🍪' },
+];
 
 const CalendarScreen = () => {
     const { getMealsForDate, addMealForDate, dailyHistory, mealHistory, allMeals } = useCalories();
+    const { t, lang } = useLanguage();
 
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -30,11 +34,10 @@ const CalendarScreen = () => {
         Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     }, []);
 
-    // Calendar helpers
     const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year: number, month: number) => {
         const d = new Date(year, month, 1).getDay();
-        return d === 0 ? 6 : d - 1; // Monday-based
+        return d === 0 ? 6 : d - 1;
     };
 
     const prevMonth = () => {
@@ -49,12 +52,10 @@ const CalendarScreen = () => {
         const next = currentMonth.month === 11
             ? { year: currentMonth.year + 1, month: 0 }
             : { ...currentMonth, month: currentMonth.month + 1 };
-        // Don't go past current month
         if (next.year > now.getFullYear() || (next.year === now.getFullYear() && next.month > now.getMonth())) return;
         setCurrentMonth(next);
     };
 
-    // Pre-compute dates with meals for O(1) calendar cell lookups
     const datesWithMeals = useMemo(() => {
         const set = new Set<string>();
         allMeals.forEach(m => {
@@ -63,12 +64,11 @@ const CalendarScreen = () => {
         });
         return set;
     }, [allMeals]);
+
     const dateHasMeals = (dateStr: string) => datesWithMeals.has(dateStr);
-    const dateHasHistory = (dateStr: string) => dailyHistory.some(d => d.date === dateStr);
     const isToday = selectedDate === todayStr;
     const isPastOrToday = selectedDate <= todayStr;
 
-    // For today: merge allMeals with mealHistory for complete view
     const allMealsForDate = getMealsForDate(selectedDate);
     const meals = isToday
         ? (() => {
@@ -79,10 +79,12 @@ const CalendarScreen = () => {
         : allMealsForDate;
     const totalCal = meals.reduce((s, m) => s + m.nutrients.calories, 0);
 
-    const handleQuickAdd = (food: typeof QUICK_FOODS[0]) => {
+    const quickFoods = getQuickFoods();
+
+    const handleQuickAdd = (food: FoodItem) => {
         addMealForDate(
             { calories: food.calories, protein: food.protein, carbs: food.carbs, fat: food.fat },
-            food.name, selectedDate, addFormCategory
+            resolveFoodName(food, lang), selectedDate, addFormCategory
         );
         hapticSuccess();
         setShowAddModal(false);
@@ -93,7 +95,7 @@ const CalendarScreen = () => {
         if (!cal || cal <= 0) return;
         addMealForDate(
             { calories: cal, protein: 0, carbs: 0, fat: 0 },
-            addFormName || 'Öğün', selectedDate, addFormCategory
+            addFormName || (lang === 'tr' ? 'Öğün' : 'Meal'), selectedDate, addFormCategory
         );
         setAddFormName('');
         setAddFormCalories('');
@@ -101,51 +103,44 @@ const CalendarScreen = () => {
         setShowAddModal(false);
     };
 
-    // Render calendar grid
     const daysInMonth = getDaysInMonth(currentMonth.year, currentMonth.month);
     const firstDay = getFirstDayOfMonth(currentMonth.year, currentMonth.month);
+    const locale = lang === 'tr' ? 'tr-TR' : 'en-US';
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#030712' }}>
             <StatusBar style="light" />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-                {/* Header */}
                 <Animated.View style={{ opacity: fadeAnim }} className="px-6 pt-4 pb-2">
-                    <Text className="text-white text-2xl font-bold">Takvim</Text>
-                    <Text className="text-gray-400 text-sm mt-1">Geçmiş günlerin öğünlerini gör ve düzenle</Text>
+                    <Text className="text-white text-2xl font-bold">{t.calendar.title}</Text>
+                    <Text className="text-gray-400 text-sm mt-1">{t.calendar.subtitle}</Text>
                 </Animated.View>
 
-                {/* Month Navigator */}
                 <Animated.View style={{ opacity: fadeAnim }} className="flex-row items-center justify-between px-6 mt-4 mb-3">
                     <TouchableOpacity onPress={prevMonth} className="p-2">
                         <Text className="text-white text-xl">‹</Text>
                     </TouchableOpacity>
                     <Text className="text-white font-bold text-base">
-                        {MONTH_NAMES[currentMonth.month]} {currentMonth.year}
+                        {t.calendar.monthNames[currentMonth.month]} {currentMonth.year}
                     </Text>
                     <TouchableOpacity onPress={nextMonth} className="p-2">
                         <Text className="text-white text-xl">›</Text>
                     </TouchableOpacity>
                 </Animated.View>
 
-                {/* Day Names */}
                 <View className="flex-row px-4 mb-1">
-                    {DAY_NAMES.map(d => (
+                    {t.calendar.dayNames.map(d => (
                         <View key={d} className="flex-1 items-center">
                             <Text className="text-gray-500 text-xs font-medium">{d}</Text>
                         </View>
                     ))}
                 </View>
 
-                {/* Calendar Grid */}
                 <Animated.View style={{ opacity: fadeAnim }} className="px-4 mb-6">
                     <View className="flex-row flex-wrap">
-                        {/* Empty cells before first day */}
                         {Array.from({ length: firstDay }).map((_, i) => (
                             <View key={`empty-${i}`} style={{ width: '14.28%', height: 44 }} />
                         ))}
-
-                        {/* Day cells */}
                         {Array.from({ length: daysInMonth }).map((_, i) => {
                             const day = i + 1;
                             const dateStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -155,8 +150,7 @@ const CalendarScreen = () => {
                             const isFuture = dateStr > todayStr;
 
                             return (
-                                <TouchableOpacity
-                                    key={day}
+                                <TouchableOpacity key={day}
                                     onPress={() => { if (!isFuture) { hapticSelection(); setSelectedDate(dateStr); } }}
                                     disabled={isFuture}
                                     style={{ width: '14.28%', height: 44 }}
@@ -176,23 +170,19 @@ const CalendarScreen = () => {
                     </View>
                 </Animated.View>
 
-                {/* Selected Date Meals */}
                 <Animated.View style={{ opacity: fadeAnim }} className="px-6">
                     <View className="flex-row items-center justify-between mb-4">
                         <View>
                             <Text className="text-white font-bold text-lg">
-                                {isToday ? 'Bugün' : new Date(selectedDate + 'T12:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}
+                                {isToday ? t.calendar.today : new Date(selectedDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'long', weekday: 'long' })}
                             </Text>
                             {meals.length > 0 && (
-                                <Text className="text-gray-400 text-xs mt-1">{totalCal} kcal · {meals.length} öğün</Text>
+                                <Text className="text-gray-400 text-xs mt-1">{totalCal} kcal · {meals.length} {t.manual.meals}</Text>
                             )}
                         </View>
                         {isPastOrToday && (
-                            <TouchableOpacity
-                                onPress={() => setShowAddModal(true)}
-                                className="bg-primary/20 px-4 py-2 rounded-full border border-primary/40"
-                            >
-                                <Text className="text-primary font-bold text-sm">+ Ekle</Text>
+                            <TouchableOpacity onPress={() => setShowAddModal(true)} className="bg-primary/20 px-4 py-2 rounded-full border border-primary/40">
+                                <Text className="text-primary font-bold text-sm">+ {t.common.add}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -200,10 +190,7 @@ const CalendarScreen = () => {
                     {meals.length > 0 ? (
                         <View className="bg-surface rounded-2xl border border-gray-800 overflow-hidden">
                             {meals.map((meal, i) => (
-                                <View
-                                    key={meal.id}
-                                    className={`flex-row items-center p-4 ${i < meals.length - 1 ? 'border-b border-gray-800' : ''}`}
-                                >
+                                <View key={meal.id} className={`flex-row items-center p-4 ${i < meals.length - 1 ? 'border-b border-gray-800' : ''}`}>
                                     <View className="w-8 h-8 bg-primary/15 rounded-full items-center justify-center mr-3">
                                         <Text style={{ fontSize: 14 }}>
                                             {meal.category === 'breakfast' ? '🌅' : meal.category === 'lunch' ? '☀️' : meal.category === 'dinner' ? '🌙' : '🍪'}
@@ -212,7 +199,7 @@ const CalendarScreen = () => {
                                     <View className="flex-1">
                                         <Text className="text-white font-medium">{meal.name}</Text>
                                         <Text className="text-gray-500 text-xs mt-0.5">
-                                            {new Date(meal.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(meal.timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                                             {meal.nutrients.protein > 0 && ` · P:${meal.nutrients.protein}g`}
                                         </Text>
                                     </View>
@@ -224,14 +211,11 @@ const CalendarScreen = () => {
                         <View className="bg-surface rounded-2xl border border-gray-800 p-8 items-center">
                             <Text style={{ fontSize: 36 }}>📅</Text>
                             <Text className="text-gray-400 mt-3 text-center">
-                                {isPastOrToday ? 'Bu güne kayıt yok.\nÖğün ekleyebilirsin.' : 'Gelecek tarihe kayıt eklenemez.'}
+                                {isPastOrToday ? t.calendar.noRecord : t.calendar.futureDate}
                             </Text>
                             {isPastOrToday && (
-                                <TouchableOpacity
-                                    onPress={() => setShowAddModal(true)}
-                                    className="mt-4 bg-primary/20 px-5 py-2.5 rounded-full border border-primary/40"
-                                >
-                                    <Text className="text-primary font-bold text-sm">Öğün Ekle</Text>
+                                <TouchableOpacity onPress={() => setShowAddModal(true)} className="mt-4 bg-primary/20 px-5 py-2.5 rounded-full border border-primary/40">
+                                    <Text className="text-primary font-bold text-sm">{t.calendar.addMeal}</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -239,79 +223,57 @@ const CalendarScreen = () => {
                 </Animated.View>
             </ScrollView>
 
-            {/* Add Meal Modal */}
             {showAddModal && (
                 <View className="absolute top-0 bottom-0 left-0 right-0 h-full w-full bg-black/70 justify-end z-50">
                     <TouchableOpacity className="flex-1" activeOpacity={1} onPress={() => { Keyboard.dismiss(); setShowAddModal(false); }} />
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        className="bg-surface rounded-t-3xl border-t border-gray-800"
-                    >
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="bg-surface rounded-t-3xl border-t border-gray-800">
                         <View className="p-6">
-                            <Text className="text-white font-bold text-lg mb-1">Öğün Ekle</Text>
+                            <Text className="text-white font-bold text-lg mb-1">{t.calendar.addMeal}</Text>
                             <Text className="text-gray-400 text-xs mb-4">
-                                {new Date(selectedDate + 'T12:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(selectedDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
                             </Text>
 
-                            {/* Category */}
                             <View className="flex-row mb-4" style={{ gap: 6 }}>
-                                {MEAL_CATEGORIES.map(c => (
-                                    <TouchableOpacity
-                                        key={c.id}
-                                        onPress={() => setAddFormCategory(c.id)}
+                                {CATEGORY_DEFS.map(c => (
+                                    <TouchableOpacity key={c.id} onPress={() => setAddFormCategory(c.id)}
                                         className={`flex-1 py-2 rounded-lg border items-center ${addFormCategory === c.id ? 'bg-primary/20 border-primary' : 'bg-gray-800 border-gray-700'}`}
                                     >
                                         <Text style={{ fontSize: 14 }}>{c.icon}</Text>
-                                        <Text className={`text-[10px] mt-0.5 font-medium ${addFormCategory === c.id ? 'text-primary' : 'text-gray-400'}`}>{c.label}</Text>
+                                        <Text className={`text-[10px] mt-0.5 font-medium ${addFormCategory === c.id ? 'text-primary' : 'text-gray-400'}`}>
+                                            {t.mealCategories[c.id]}
+                                        </Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
 
-                            {/* Quick Foods */}
-                            <Text className="text-gray-400 text-xs uppercase tracking-wider mb-2">Hızlı Ekle</Text>
+                            <Text className="text-gray-400 text-xs uppercase tracking-wider mb-2">{t.calendar.quickAdd}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4" contentContainerStyle={{ gap: 6 }}>
-                                {QUICK_FOODS.map((food, i) => (
-                                    <TouchableOpacity
-                                        key={i}
-                                        onPress={() => handleQuickAdd(food)}
-                                        className="bg-gray-800 rounded-xl px-3 py-2 items-center"
-                                        style={{ width: 80 }}
-                                    >
+                                {quickFoods.map((food, i) => (
+                                    <TouchableOpacity key={i} onPress={() => handleQuickAdd(food)} className="bg-gray-800 rounded-xl px-3 py-2 items-center" style={{ width: 80 }}>
                                         <Text style={{ fontSize: 20 }}>{food.icon}</Text>
-                                        <Text className="text-white text-[10px] text-center mt-1" numberOfLines={1}>{food.name}</Text>
+                                        <Text className="text-white text-[10px] text-center mt-1" numberOfLines={1}>{resolveFoodName(food, lang)}</Text>
                                         <Text className="text-primary text-[9px] font-bold">{food.calories}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
 
-                            {/* Manual Entry */}
                             <View className="flex-row mb-4" style={{ gap: 8 }}>
-                                <TextInput
-                                    value={addFormName}
-                                    onChangeText={setAddFormName}
-                                    placeholder="Yemek adı"
-                                    placeholderTextColor="#4B5563"
-                                    className="flex-1 bg-gray-800 text-white p-3 rounded-xl text-sm"
-                                    returnKeyType="done"
+                                <TextInput value={addFormName} onChangeText={setAddFormName}
+                                    placeholder={t.calendar.mealName} placeholderTextColor="#4B5563"
+                                    className="flex-1 bg-gray-800 text-white p-3 rounded-xl text-sm" returnKeyType="done"
                                 />
-                                <TextInput
-                                    value={addFormCalories}
-                                    onChangeText={setAddFormCalories}
-                                    placeholder="kcal"
-                                    placeholderTextColor="#4B5563"
-                                    keyboardType="numeric"
-                                    className="w-20 bg-gray-800 text-white p-3 rounded-xl text-sm text-center"
-                                    returnKeyType="done"
+                                <TextInput value={addFormCalories} onChangeText={setAddFormCalories}
+                                    placeholder="kcal" placeholderTextColor="#4B5563" keyboardType="numeric"
+                                    className="w-20 bg-gray-800 text-white p-3 rounded-xl text-sm text-center" returnKeyType="done"
                                 />
                             </View>
 
-                            <TouchableOpacity
-                                onPress={handleManualAdd}
+                            <TouchableOpacity onPress={handleManualAdd}
                                 disabled={!addFormCalories || parseInt(addFormCalories) <= 0}
                                 className={`py-3.5 rounded-2xl items-center ${addFormCalories && parseInt(addFormCalories) > 0 ? 'bg-primary' : 'bg-gray-800'}`}
                             >
                                 <Text className={`font-bold ${addFormCalories && parseInt(addFormCalories) > 0 ? 'text-black' : 'text-gray-500'}`}>
-                                    EKLE
+                                    {t.common.add.toUpperCase()}
                                 </Text>
                             </TouchableOpacity>
                         </View>

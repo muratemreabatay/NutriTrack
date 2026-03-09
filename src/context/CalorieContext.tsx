@@ -18,39 +18,40 @@ export type Badge = {
 };
 
 export const BADGES: Badge[] = [
-    // İlk adımlar
-    { id: 'first_meal', name: 'İlk Adım', description: 'İlk yemeğini kaydettin!', icon: '🥑', condition: (ctx) => ctx.consumed.calories > 0 },
-    // Streak rozetleri
-    { id: 'streak_3', name: 'İstikrarlı', description: '3 gün üst üste takip', icon: '🔥', condition: (ctx) => ctx.streak >= 3 },
-    { id: 'streak_7', name: 'Hafta Savaşçısı', description: '7 günlük seri!', icon: '⚔️', condition: (ctx) => ctx.streak >= 7 },
-    { id: 'streak_14', name: 'Alışkanlık Ustası', description: '14 gün aralıksız takip', icon: '🛡️', condition: (ctx) => ctx.streak >= 14 },
-    { id: 'streak_30', name: 'Demir İrade', description: '30 gün boyunca her gün!', icon: '💎', condition: (ctx) => ctx.streak >= 30 },
-    { id: 'streak_60', name: 'Altın Seri', description: '60 gün aralıksız! Efsane oluyorsun', icon: '👑', condition: (ctx) => ctx.streak >= 60 },
-    { id: 'streak_90', name: 'Platin Seri', description: '90 günlük seri — gerçek bir şampiyon!', icon: '🏆', condition: (ctx) => ctx.streak >= 90 },
-    // Makro hedefleri
-    { id: 'protein_master', name: 'Protein Şefi', description: 'Günlük protein hedefini tamamla', icon: '🥩', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.targets.protein > 0 },
-    { id: 'carb_loader', name: 'Enerji Deposu', description: 'Karbonhidrat hedefini doldur', icon: '🍞', condition: (ctx) => ctx.consumed.carbs >= ctx.targets.carbs && ctx.targets.carbs > 0 },
-    { id: 'fat_balance', name: 'Yağ Dengesi', description: 'Yağ hedefini yakala', icon: '🥜', condition: (ctx) => ctx.consumed.fat >= ctx.targets.fat && ctx.targets.fat > 0 },
-    { id: 'macro_perfect', name: 'Mükemmel Denge', description: 'Tüm makro hedeflerini aynı gün tamamla', icon: '⚖️', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.consumed.carbs >= ctx.targets.carbs && ctx.consumed.fat >= ctx.targets.fat && ctx.targets.protein > 0 },
-    // Kalori hedefleri
-    { id: 'cal_500', name: 'Başlangıç', description: 'Bir günde 500+ kcal kaydet', icon: '📝', condition: (ctx) => ctx.consumed.calories >= 500 },
-    { id: 'cal_1000', name: 'Bilinçli Beslenme', description: 'Bir günde 1000+ kcal kaydet', icon: '📊', condition: (ctx) => ctx.consumed.calories >= 1000 },
-    { id: 'cal_1500', name: 'Takip Uzmanı', description: 'Bir günde 1500+ kcal takip et', icon: '🏅', condition: (ctx) => ctx.consumed.calories >= 1500 },
-    { id: 'cal_2000', name: 'Tam Gaz', description: 'Bir günde 2000+ kcal kayıt', icon: '🚀', condition: (ctx) => ctx.consumed.calories >= 2000 },
-    { id: 'goal_reached', name: 'Hedefe Ulaştın!', description: 'Günlük kalori hedefini doldur', icon: '🎯', condition: (ctx) => ctx.consumed.calories >= ctx.targets.calories && ctx.targets.calories > 0 },
-    // Özel
-    { id: 'early_bird', name: 'Erken Kuş', description: 'Sabah 8\'den önce öğün ekle', icon: '🌅', condition: (ctx) => { const h = new Date().getHours(); return h < 8 && ctx.consumed.calories > 0; } },
-    { id: 'night_owl', name: 'Gece Kuşu', description: 'Gece 22\'den sonra kayıt yap', icon: '🦉', condition: (ctx) => { const h = new Date().getHours(); return h >= 22 && ctx.consumed.calories > 0; } },
-    // Yeni rozetler
-    { id: 'water_champ', name: 'Su Şampiyonu', description: 'Günde 8 bardak su iç', icon: '💧', condition: (ctx) => ctx.waterGlasses >= 8 },
-    { id: 'meal_logger_5', name: 'Kayıt Meraklısı', description: 'Bir günde 5 öğün kaydet', icon: '📋', condition: (ctx) => ctx.mealCount >= 5 },
-    { id: 'variety_king', name: 'Çeşitlilik Kralı', description: '4 farklı öğün kategorisi kullan', icon: '🌈', condition: (ctx) => ctx.categoryCount >= 4 },
-    { id: 'weekend_warrior', name: 'Hafta Sonu Savaşçısı', description: 'Hafta sonu da takip et', icon: '🗓️', condition: (ctx) => { const d = new Date().getDay(); return (d === 0 || d === 6) && ctx.consumed.calories > 0; } },
-    { id: 'breakfast_lover', name: 'Kahvaltı Aşığı', description: 'Sabah 10\'dan önce öğün ekle', icon: '🥞', condition: (ctx) => { const h = new Date().getHours(); return h < 10 && ctx.consumed.calories > 0; } },
-    { id: 'light_eater', name: 'Hafif Öğün', description: '300 kcal altı bir öğün kaydet', icon: '🥗', condition: (ctx) => ctx.hasLightMeal },
+    // First steps
+    { id: 'first_meal', name: 'First Step', description: 'You logged your first meal!', icon: '🥑', condition: (ctx) => ctx.consumed.calories > 0 },
+    // Streak badges
+    { id: 'streak_3', name: 'Consistent', description: '3 days in a row', icon: '🔥', condition: (ctx) => ctx.streak >= 3 },
+    { id: 'streak_7', name: 'Week Warrior', description: '7-day streak!', icon: '⚔️', condition: (ctx) => ctx.streak >= 7 },
+    { id: 'streak_14', name: 'Habit Master', description: '14 days non-stop tracking', icon: '🛡️', condition: (ctx) => ctx.streak >= 14 },
+    { id: 'streak_30', name: 'Iron Will', description: '30 days every single day!', icon: '💎', condition: (ctx) => ctx.streak >= 30 },
+    { id: 'streak_60', name: 'Gold Streak', description: '60 days non-stop! Legendary', icon: '👑', condition: (ctx) => ctx.streak >= 60 },
+    { id: 'streak_90', name: 'Platinum Streak', description: '90-day streak — true champion!', icon: '🏆', condition: (ctx) => ctx.streak >= 90 },
+    // Macro goals
+    { id: 'protein_master', name: 'Protein Chef', description: 'Complete your daily protein goal', icon: '🥩', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.targets.protein > 0 },
+    { id: 'carb_loader', name: 'Energy Depot', description: 'Hit your carb target', icon: '🍞', condition: (ctx) => ctx.consumed.carbs >= ctx.targets.carbs && ctx.targets.carbs > 0 },
+    { id: 'fat_balance', name: 'Fat Balance', description: 'Reach your fat goal', icon: '🥜', condition: (ctx) => ctx.consumed.fat >= ctx.targets.fat && ctx.targets.fat > 0 },
+    { id: 'macro_perfect', name: 'Perfect Balance', description: 'Complete all macro goals in one day', icon: '⚖️', condition: (ctx) => ctx.consumed.protein >= ctx.targets.protein && ctx.consumed.carbs >= ctx.targets.carbs && ctx.consumed.fat >= ctx.targets.fat && ctx.targets.protein > 0 },
+    // Calorie goals
+    { id: 'cal_500', name: 'Getting Started', description: 'Log 500+ kcal in a day', icon: '📝', condition: (ctx) => ctx.consumed.calories >= 500 },
+    { id: 'cal_1000', name: 'Mindful Eating', description: 'Log 1000+ kcal in a day', icon: '📊', condition: (ctx) => ctx.consumed.calories >= 1000 },
+    { id: 'cal_1500', name: 'Tracking Pro', description: 'Track 1500+ kcal in a day', icon: '🏅', condition: (ctx) => ctx.consumed.calories >= 1500 },
+    { id: 'cal_2000', name: 'Full Throttle', description: 'Log 2000+ kcal in a day', icon: '🚀', condition: (ctx) => ctx.consumed.calories >= 2000 },
+    { id: 'goal_reached', name: 'Goal Reached!', description: 'Complete your daily calorie goal', icon: '🎯', condition: (ctx) => ctx.consumed.calories >= ctx.targets.calories && ctx.targets.calories > 0 },
+    // Special
+    { id: 'early_bird', name: 'Early Bird', description: 'Add a meal before 8 AM', icon: '🌅', condition: (ctx) => { const h = new Date().getHours(); return h < 8 && ctx.consumed.calories > 0; } },
+    { id: 'night_owl', name: 'Night Owl', description: 'Log food after 10 PM', icon: '🦉', condition: (ctx) => { const h = new Date().getHours(); return h >= 22 && ctx.consumed.calories > 0; } },
+    // Extra badges
+    { id: 'water_champ', name: 'Water Champion', description: 'Drink 8 glasses of water a day', icon: '💧', condition: (ctx) => ctx.waterGlasses >= 8 },
+    { id: 'meal_logger_5', name: 'Log Enthusiast', description: 'Log 5 meals in one day', icon: '📋', condition: (ctx) => ctx.mealCount >= 5 },
+    { id: 'variety_king', name: 'Variety King', description: 'Use all 4 meal categories', icon: '🌈', condition: (ctx) => ctx.categoryCount >= 4 },
+    { id: 'weekend_warrior', name: 'Weekend Warrior', description: 'Track on weekends too', icon: '🗓️', condition: (ctx) => { const d = new Date().getDay(); return (d === 0 || d === 6) && ctx.consumed.calories > 0; } },
+    { id: 'breakfast_lover', name: 'Breakfast Lover', description: 'Add a meal before 10 AM', icon: '🥞', condition: (ctx) => { const h = new Date().getHours(); return h < 10 && ctx.consumed.calories > 0; } },
+    { id: 'light_eater', name: 'Light Meal', description: 'Log a meal under 300 kcal', icon: '🥗', condition: (ctx) => ctx.hasLightMeal },
 ];
 
 type UserProfile = {
+    name?: string;
     weight: string;
     height: string;
     age: string;
@@ -59,6 +60,7 @@ type UserProfile = {
     goal?: 'lose' | 'maintain' | 'gain';
     targetWeight?: string;
     bodyType?: 'ectomorph' | 'mesomorph' | 'endomorph' | 'unsure';
+    avatar?: string;
 };
 
 export type MealCategory = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -124,6 +126,7 @@ const defaultTargets = {
 };
 
 const defaultProfile: UserProfile = {
+    name: '',
     weight: '70',
     height: '175',
     age: '25',
@@ -131,6 +134,7 @@ const defaultProfile: UserProfile = {
     activityLevel: 'moderate',
     goal: 'maintain',
     targetWeight: '70',
+    avatar: undefined,
 };
 
 const STORAGE_KEYS = {
@@ -428,7 +432,7 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
 
         const entry: MealEntry = {
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 9),
-            name: name || 'Öğün',
+            name: name || 'Meal',
             nutrients: meal,
             timestamp: new Date().toISOString(),
             category,
