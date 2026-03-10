@@ -13,9 +13,12 @@
       "backgroundColor": "#030712"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nutritrack.app"
     },
     "android": {
+      "package": "com.nutritrack.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#030712"

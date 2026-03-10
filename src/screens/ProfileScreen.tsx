@@ -11,7 +11,7 @@ import BadgeCard from '../components/BadgeCard';
 import AvatarDisplay from '../components/AvatarDisplay';
 import { getAllAvatars } from '../constants/avatars';
 import * as ImagePicker from 'expo-image-picker';
-import { Feather } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
@@ -88,7 +88,10 @@ const ProfileScreen = () => {
                         >
                             <AvatarDisplay avatar={userProfile.avatar} name={userProfile.name} size="lg" />
                             <View className="absolute bottom-0 right-0 w-6 h-6 bg-surface border border-gray-700 rounded-full items-center justify-center">
-                                <Feather name="refresh-cw" size={12} color="#34D399" />
+                                <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                                    <Path d="M23 4v6h-6M1 20v-6h6" stroke="#34D399" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                    <Path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="#34D399" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                </Svg>
                             </View>
                         </TouchableOpacity>
 
