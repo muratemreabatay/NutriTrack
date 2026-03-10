@@ -30,7 +30,20 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-localization"
-    ]
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#34D399"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8ce70bac-5920-4b4a-ba28-7b7b7c3163f0"
+      }
+    },
+    "owner": "murat_1"
   }
 }

@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { useCalories } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useNotifications } from '../hooks/useNotifications';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SmartOnboardingScreen from '../screens/SmartOnboardingScreen';
 import BottomTabNavigator from './BottomTabNavigator';
@@ -16,6 +17,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const AppNavigator = () => {
     const { onboardingComplete, isLoading } = useCalories();
     const { isFirstLaunch } = useLanguage();
+
+    // Initialize notification system
+    useNotifications();
 
     if (isLoading) {
         return (
