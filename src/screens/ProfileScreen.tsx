@@ -5,10 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useCalories, BADGES } from '../context/CalorieContext';
 import { useLanguage, Language } from '../i18n/LanguageContext';
-import { ACTIVITY_MULTIPLIERS, ActivityLevelId } from '../constants';
+import { ACTIVITY_LEVEL_DEFS } from '../constants';
+import { resolveBadgeName } from '../utils/badges';
 import BadgeCard from '../components/BadgeCard';
-import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
-import { getAvatarSource, getAllAvatars } from '../constants/avatars';
+import AvatarDisplay from '../components/AvatarDisplay';
+import { getAllAvatars } from '../constants/avatars';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 
@@ -60,44 +61,14 @@ const ProfileScreen = () => {
         setShowQuickAvatar(false);
     };
 
-    const renderAvatarDisplay = (profileObj: any) => {
-        if (profileObj.avatar) {
-            const predefinedSource = getAvatarSource(profileObj.avatar);
-            const source = predefinedSource ? predefinedSource : { uri: profileObj.avatar };
-            return <Image source={source} className="w-full h-full rounded-full" resizeMode="cover" />;
-        }
-        if (profileObj.name) {
-            return <Text style={{ fontSize: 32, fontWeight: '800', color: '#34D399' }}>{profileObj.name.charAt(0).toUpperCase()}</Text>;
-        }
-        return (
-            <Svg width={36} height={36} viewBox="0 0 24 24" fill="none">
-                <SvgCircle cx={12} cy={8} r={4} stroke="#34D399" strokeWidth={2} />
-                <Path d="M4 21c0-3.87 3.13-7 7-7h2c3.87 0 7 3.13 7 7" stroke="#34D399" strokeWidth={2} strokeLinecap="round" />
-            </Svg>
-        );
-    };
-
-    const totalMeals = mealHistory.length;
-
     const actKeys = ['sedentary', 'light', 'moderate', 'active', 'extra'] as const;
     const actKey = actKeys.includes(userProfile.activityLevel as any) ? userProfile.activityLevel as typeof actKeys[number] : 'moderate';
     const activityLabel = t.activity[actKey]?.label || userProfile.activityLevel;
 
-    const ACTIVITY_LEVELS = [
-        { id: 'sedentary' as ActivityLevelId, label: t.activity.sedentary.label, icon: '💻' },
-        { id: 'light' as ActivityLevelId, label: t.activity.light.label, icon: '🚶' },
-        { id: 'moderate' as ActivityLevelId, label: t.activity.moderate.label, icon: '🏃' },
-        { id: 'active' as ActivityLevelId, label: t.activity.active.label, icon: '🏋️' },
-        { id: 'extra' as ActivityLevelId, label: t.activity.extra.label, icon: '⚡' },
-    ];
-
-    // Badge name resolved via translations
-    const getBadgeName = (badge: { id: string; name: string }) => {
-        const key = badge.id as keyof typeof t.badges;
-        const tr = t.badges[key];
-        if (tr && typeof tr === 'object' && 'name' in tr) return tr.name;
-        return badge.name;
-    };
+    const ACTIVITY_LEVELS = ACTIVITY_LEVEL_DEFS.map(item => ({
+        ...item,
+        label: t.activity[item.id]?.label || item.id,
+    }));
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#030712' }}>
@@ -115,7 +86,7 @@ const ProfileScreen = () => {
                             activeOpacity={0.8}
                             className="w-20 h-20 bg-surface rounded-full items-center justify-center border-2 border-primary/30 mb-2 relative"
                         >
-                            {renderAvatarDisplay(userProfile)}
+                            <AvatarDisplay avatar={userProfile.avatar} name={userProfile.name} size="lg" />
                             <View className="absolute bottom-0 right-0 w-6 h-6 bg-surface border border-gray-700 rounded-full items-center justify-center">
                                 <Feather name="refresh-cw" size={12} color="#34D399" />
                             </View>
@@ -164,7 +135,7 @@ const ProfileScreen = () => {
                             <Text className="text-gray-400 text-xs mt-1">{t.profile.badges}</Text>
                         </View>
                         <View className="flex-1 bg-surface rounded-2xl p-4 border border-gray-800 items-center ml-2">
-                            <Text className="text-secondary text-2xl font-bold">{totalMeals}</Text>
+                            <Text className="text-secondary text-2xl font-bold">{mealHistory.length}</Text>
                             <Text className="text-gray-400 text-xs mt-1">{t.profile.meals}</Text>
                         </View>
                     </Animated.View>
@@ -239,7 +210,7 @@ const ProfileScreen = () => {
                         <Text className="text-white font-bold text-base mb-3">{t.profile.achievements}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                             {BADGES.map(badge => (
-                                <BadgeCard key={badge.id} badge={{ ...badge, name: getBadgeName(badge) }} isEarned={earnedBadges.includes(badge.id)} />
+                                <BadgeCard key={badge.id} badge={{ ...badge, name: resolveBadgeName(badge, t.badges) }} isEarned={earnedBadges.includes(badge.id)} />
                             ))}
                         </ScrollView>
                     </Animated.View>

@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, Dimensions, Image } from 'react-native';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const isSmallScreen = SCREEN_WIDTH < 380;
-const ringSize = Math.min(SCREEN_WIDTH * 0.4, 170);
+import { View, Text, TouchableOpacity, ScrollView, Animated, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
@@ -11,24 +7,23 @@ import { useNavigation } from '@react-navigation/native';
 import { useCalories } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
 import { hapticLight, hapticMedium } from '../utils/haptics';
+import { resolveBadgeName, resolveBadgeDesc } from '../utils/badges';
+import { MEAL_CATEGORY_DEFS } from '../constants';
 import MacroCard from '../components/MacroCard';
 import StreakBadge from '../components/StreakBadge';
 import WeeklyChart from '../components/WeeklyChart';
 import AnimatedWaterGlass from '../components/AnimatedWaterGlass';
-import Svg, { Circle, Path, Line, Rect } from 'react-native-svg';
-import { getAvatarSource } from '../constants/avatars';
-
-const CATEGORY_DEFS = [
-    { id: 'breakfast', icon: '🌅', timeRange: { tr: '06:00 - 10:00', en: '6 AM - 10 AM' } },
-    { id: 'lunch', icon: '☀️', timeRange: { tr: '10:00 - 15:00', en: '10 AM - 3 PM' } },
-    { id: 'dinner', icon: '🌙', timeRange: { tr: '15:00 - 21:00', en: '3 PM - 9 PM' } },
-    { id: 'snack', icon: '🍪', timeRange: { tr: 'Gün boyu', en: 'All day' } },
-];
+import AvatarDisplay from '../components/AvatarDisplay';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 const DashboardScreen = () => {
     const navigation = useNavigation();
     const { t, lang } = useLanguage();
     const { consumed, targets, streak, mealHistory, removeMeal, badgeQueue, clearNewBadge, waterGlasses, waterTarget, dailyHistory, userProfile } = useCalories();
+
+    const { width: SCREEN_WIDTH } = useWindowDimensions();
+    const isSmallScreen = SCREEN_WIDTH < 380;
+    const ringSize = Math.min(SCREEN_WIDTH * 0.4, 170);
 
     const getGreeting = (): string => {
         const hour = new Date().getHours();
@@ -46,22 +41,7 @@ const DashboardScreen = () => {
         return t.dashboard.motivation.done;
     };
 
-    const renderAvatarDisplay = (profileObj: any) => {
-        if (profileObj.avatar) {
-            const predefinedSource = getAvatarSource(profileObj.avatar);
-            const source = predefinedSource ? predefinedSource : { uri: profileObj.avatar };
-            return <Image source={source} className="w-full h-full rounded-full" resizeMode="cover" />;
-        }
-        if (profileObj.name) {
-            return <Text style={{ fontSize: 18, fontWeight: '800', color: '#34D399' }}>{profileObj.name.charAt(0).toUpperCase()}</Text>;
-        }
-        return (
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                <Circle cx={12} cy={8} r={4} stroke="#34D399" strokeWidth={2} />
-                <Path d="M4 21c0-3.87 3.13-7 7-7h2c3.87 0 7 3.13 7 7" stroke="#34D399" strokeWidth={2} strokeLinecap="round" />
-            </Svg>
-        );
-    };
+
 
     // Animations
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -113,19 +93,7 @@ const DashboardScreen = () => {
     const getCategoryCalories = (categoryId: string) =>
         (mealsByCategory[categoryId] || []).reduce((sum, m) => sum + m.nutrients.calories, 0);
 
-    // Badge name/desc resolved via translations
-    const getBadgeName = (badge: { id: string; name: string }) => {
-        const key = badge.id as keyof typeof t.badges;
-        const tr = t.badges[key];
-        if (tr && typeof tr === 'object' && 'name' in tr) return tr.name;
-        return badge.name;
-    };
-    const getBadgeDesc = (badge: { id: string; description: string }) => {
-        const key = badge.id as keyof typeof t.badges;
-        const tr = t.badges[key];
-        if (tr && typeof tr === 'object' && 'desc' in tr) return tr.desc;
-        return badge.description;
-    };
+
 
     const locale = lang === 'tr' ? 'tr-TR' : 'en-US';
 
@@ -151,7 +119,7 @@ const DashboardScreen = () => {
                                 activeOpacity={0.8}
                                 className="w-10 h-10 bg-surface rounded-full items-center justify-center border-2 border-primary/30 ml-3"
                             >
-                                {renderAvatarDisplay(userProfile)}
+                                <AvatarDisplay avatar={userProfile.avatar} name={userProfile.name} size="sm" />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -212,7 +180,7 @@ const DashboardScreen = () => {
                 {/* Meal Categories */}
                 <Animated.View style={{ opacity: fadeAnim }} className="px-6 mt-8">
                     <Text className="text-white text-lg font-bold mb-4">{t.dashboard.meals}</Text>
-                    {CATEGORY_DEFS.map((cat) => {
+                    {MEAL_CATEGORY_DEFS.map((cat) => {
                         const meals = mealsByCategory[cat.id] || [];
                         const catCalories = getCategoryCalories(cat.id);
                         const catLabel = t.mealCategories[cat.id as keyof typeof t.mealCategories];
@@ -294,17 +262,25 @@ const DashboardScreen = () => {
             {/* Floating Add Button */}
             <View className="absolute bottom-4 w-full items-center z-40">
                 <View className="flex-row items-center bg-surface/95 rounded-2xl px-2 py-2 border border-gray-800" style={{ gap: 6 }}>
-                    <TouchableOpacity
-                        className="bg-primary rounded-xl px-5 py-3 flex-row items-center"
-                        onPress={() => { hapticMedium(); navigation.navigate('Camera' as never); }}
-                        activeOpacity={0.8}
-                    >
-                        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                            <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#030712" strokeWidth={2} strokeLinejoin="round" />
-                            <Circle cx={12} cy={13} r={4} stroke="#030712" strokeWidth={2} />
-                        </Svg>
-                        <Text className="text-black font-bold ml-2 text-sm">{t.camera.title}</Text>
-                    </TouchableOpacity>
+                    <View className="relative">
+                        <View className="absolute -top-5 left-0 right-0 items-center z-10">
+                            <Text style={{ fontSize: 9, fontWeight: '700', color: '#34D399', letterSpacing: 1 }}>
+                                {lang === 'tr' ? 'YAKINDA' : 'COMING SOON'}
+                            </Text>
+                        </View>
+                        <TouchableOpacity
+                            className="bg-primary/30 rounded-xl px-5 py-3 flex-row items-center"
+                            onPress={() => { /* AI Camera — coming soon */ }}
+                            activeOpacity={1}
+                            style={{ opacity: 0.5 }}
+                        >
+                            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                                <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#9CA3AF" strokeWidth={2} strokeLinejoin="round" />
+                                <Circle cx={12} cy={13} r={4} stroke="#9CA3AF" strokeWidth={2} />
+                            </Svg>
+                            <Text className="text-gray-400 font-bold ml-2 text-sm">{t.camera.title}</Text>
+                        </TouchableOpacity>
+                    </View>
                     <TouchableOpacity
                         className="bg-gray-800 rounded-xl px-5 py-3 flex-row items-center"
                         onPress={() => { hapticLight(); navigation.navigate('ManualEntry' as never); }}
@@ -335,8 +311,8 @@ const DashboardScreen = () => {
                             </View>
                         )}
                         <Text className="text-primary text-xs font-bold uppercase tracking-wider mb-1">{t.badges.newBadge}</Text>
-                        <Text className="text-white text-xl font-bold text-center mb-1">{getBadgeName(badgeQueue[0])}</Text>
-                        <Text className="text-gray-400 text-center text-sm mb-6">{getBadgeDesc(badgeQueue[0])}</Text>
+                        <Text className="text-white text-xl font-bold text-center mb-1">{resolveBadgeName(badgeQueue[0], t.badges)}</Text>
+                        <Text className="text-gray-400 text-center text-sm mb-6">{resolveBadgeDesc(badgeQueue[0], t.badges)}</Text>
                         <TouchableOpacity onPress={clearNewBadge} className="bg-primary px-8 py-3 rounded-full">
                             <Text className="text-black font-bold">{badgeQueue.length > 1 ? t.common.nextBadge : t.common.great}</Text>
                         </TouchableOpacity>

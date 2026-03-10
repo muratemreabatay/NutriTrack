@@ -22,15 +22,14 @@ export const AVATARS = {
     ]
 };
 
-export const getAvatarsForGender = (gender: 'male' | 'female') => {
-    return [...AVATARS[gender], ...AVATARS.unisex];
+// Pre-computed caches (avoid repeated array spreads)
+const AVATARS_BY_GENDER: Record<'male' | 'female', typeof AVATARS.male> = {
+    male: [...AVATARS.male, ...AVATARS.unisex],
+    female: [...AVATARS.female, ...AVATARS.unisex],
 };
+const ALL_AVATARS = [...AVATARS.male, ...AVATARS.female, ...AVATARS.unisex];
+const AVATAR_MAP = new Map(ALL_AVATARS.map(a => [a.id, a.source]));
 
-export const getAllAvatars = () => {
-    return [...AVATARS.male, ...AVATARS.female, ...AVATARS.unisex];
-};
-
-export const getAvatarSource = (id: string) => {
-    const all = getAllAvatars();
-    return all.find(a => a.id === id)?.source;
-};
+export const getAvatarsForGender = (gender: 'male' | 'female') => AVATARS_BY_GENDER[gender];
+export const getAllAvatars = () => ALL_AVATARS;
+export const getAvatarSource = (id: string) => AVATAR_MAP.get(id);

@@ -4,15 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useCalories, MealCategory } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getQuickFoods, resolveFoodName, FoodItem } from '../constants';
+import { getQuickFoods, resolveFoodName, FoodItem, MEAL_CATEGORY_DEFS } from '../constants';
 import { hapticSelection, hapticSuccess, hapticLight } from '../utils/haptics';
-
-const CATEGORY_DEFS = [
-    { id: 'breakfast' as MealCategory, icon: '🌅' },
-    { id: 'lunch' as MealCategory, icon: '☀️' },
-    { id: 'dinner' as MealCategory, icon: '🌙' },
-    { id: 'snack' as MealCategory, icon: '🍪' },
-];
 
 const CalendarScreen = () => {
     const { getMealsForDate, addMealForDate, dailyHistory, mealHistory, allMeals } = useCalories();
@@ -56,14 +49,8 @@ const CalendarScreen = () => {
         setCurrentMonth(next);
     };
 
-    const datesWithMeals = useMemo(() => {
-        const set = new Set<string>();
-        allMeals.forEach(m => {
-            const d = new Date(m.timestamp);
-            set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
-        });
-        return set;
-    }, [allMeals]);
+    // F2: allMeals is already date-indexed, just use keys
+    const datesWithMeals = useMemo(() => new Set(Object.keys(allMeals)), [allMeals]);
 
     const dateHasMeals = (dateStr: string) => datesWithMeals.has(dateStr);
     const isToday = selectedDate === todayStr;
@@ -234,7 +221,7 @@ const CalendarScreen = () => {
                             </Text>
 
                             <View className="flex-row mb-4" style={{ gap: 6 }}>
-                                {CATEGORY_DEFS.map(c => (
+                                {MEAL_CATEGORY_DEFS.map(c => (
                                     <TouchableOpacity key={c.id} onPress={() => setAddFormCategory(c.id)}
                                         className={`flex-1 py-2 rounded-lg border items-center ${addFormCategory === c.id ? 'bg-primary/20 border-primary' : 'bg-gray-800 border-gray-700'}`}
                                     >

@@ -2,14 +2,14 @@
 
 ## Must-follow constraints
 
-- **UI language is Turkish.** All user-facing strings (labels, placeholders, alerts, badge names, food names) must be in Turkish.
+- **UI Language Support (i18n).** App supports both Turkish and English. All user-facing strings must use the generic translation logic `t.someKey` via `LanguageContext` (`src/i18n`). Never hardcode text directly in components.
 - **Never use `yarn` or `pnpm`.** This project uses `npm` only (`package-lock.json` is the lockfile).
 - **`react-native-reanimated/plugin` must be the LAST plugin** in `babel.config.js`. Moving it breaks builds silently.
 - **NativeWind v2** (not v4). Use `className` strings with Tailwind v3 syntax. Do not use `styled()` wrapper or NativeWind v4 APIs.
-- **All state flows through `CalorieContext`** (`src/context/CalorieContext.tsx`). Do not create parallel storage or state systems — add to the existing context or extract sub-contexts from it.
+- **All state flows through Contexts** (`src/context/CalorieContext.tsx` and `src/i18n/LanguageContext.tsx`). Do not create parallel storage or state systems — add to the existing context or extract sub-contexts from it.
 - **AsyncStorage keys are prefixed with `@calorie_`** (see `STORAGE_KEYS` in `CalorieContext.tsx`). Never use bare keys. Changing existing key names will lose user data.
-- **Env vars must be prefixed with `EXPO_PUBLIC_`** to be accessible at runtime (Expo convention). The API key is `EXPO_PUBLIC_GOOGLE_AI_KEY` in `.env`.
-- **Do not commit `.env`** — it contains the Google AI API key.
+- **Env vars must be prefixed with `EXPO_PUBLIC_`** to be accessible at runtime (Expo convention). The AI API key is `EXPO_PUBLIC_GOOGLE_AI_KEY` in `.env` (used for Gemini 2.5 Flash REST API calls).
+- **Do not commit `.env`** — it contains the API key.
 
 ## Validation before finishing
 
@@ -24,8 +24,9 @@ There are no automated tests in this project.
 
 - **Entry point**: `index.ts` → `App.tsx` (not default Expo `App.js`). Set via `"main": "index.ts"` in `package.json`.
 - **Navigation**: React Navigation v7 with native stack. Screen names are defined in `src/navigation/types.ts` (`RootStackParamList`). New screens must be added there first.
-- **Styling**: Mix of NativeWind `className` and inline `style={}` with hardcoded hex colors. Prefer NativeWind tokens from `tailwind.config.js` (`primary`, `secondary`, `accent`, `warning`, `surface`, `background`, `water`).
-- **Shared constants**: `src/constants/index.ts` holds `MEAL_CATEGORIES`, `ACTIVITY_LEVELS`, `FOOD_DATABASE`, `QUICK_FOODS`, `POPULAR_FOODS`. Add new shared data there.
+- **Styling & Animations**: Mix of NativeWind `className` and inline `style={}` with hardcoded hex colors. Prefer NativeWind tokens from `tailwind.config.js`. Animations use `react-native-reanimated` (e.g., WaterTracker, AnimatedStreak).
+- **Gamification & Profile**: Profiles manage custom/predefined avatars (`src/constants/avatars.ts`). Gamification handles daily streaks and automatic badge unlocks.
+- **Shared constants**: `src/constants/index.ts` holds meal and food definitions. Translations manage generic text.
 - **Persistence**: All data is stored via `@react-native-async-storage/async-storage`. Use the `persist()` helper or `AsyncStorage.multiSet()` for batch writes.
 - **Daily reset logic**: `CalorieContext.loadData()` compares stored date to today's date. Consumed calories, water, and meal history reset daily. `allMeals` persists across days.
 - **Splash → Onboarding → Main flow**: `App.tsx` shows `SplashScreen`, then `AppNavigator` checks `onboardingComplete` flag to route to onboarding or main tabs.
@@ -35,8 +36,10 @@ There are no automated tests in this project.
 | What | Path |
 |------|------|
 | All app state + persistence | `src/context/CalorieContext.tsx` |
+| Localization & i18n | `src/i18n/` |
 | Navigation types | `src/navigation/types.ts` |
 | Food database + constants | `src/constants/index.ts` |
+| Avatar definitions & assets | `src/constants/avatars.ts` |
 | AI food recognition (camera) | `src/screens/CameraScreen.tsx` |
 | Tailwind theme tokens | `tailwind.config.js` |
 | Known optimizations backlog | `OPTIMIZATIONS.md` |

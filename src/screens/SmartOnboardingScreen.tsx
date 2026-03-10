@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { useCalories } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { ACTIVITY_MULTIPLIERS, ActivityLevelId } from '../constants';
+import { ACTIVITY_MULTIPLIERS, ActivityLevelId, ACTIVITY_LEVEL_DEFS } from '../constants';
 import { getAvatarsForGender } from '../constants/avatars';
 import RulerPicker from '../components/RulerPicker';
 import { hapticLight, hapticSuccess } from '../utils/haptics';
@@ -52,13 +52,12 @@ const SmartOnboardingScreen = () => {
         { id: 'unsure' as const, label: t.onboarding.bodyTypes.unsure.label, icon: '🤔', desc: t.onboarding.bodyTypes.unsure.desc, color: '#A78BFA' },
     ];
 
-    const ACTIVITY_LEVELS = [
-        { id: 'sedentary' as ActivityLevelId, label: t.activity.sedentary.label, desc: t.activity.sedentary.desc, icon: '💻', multiplier: ACTIVITY_MULTIPLIERS.sedentary },
-        { id: 'light' as ActivityLevelId, label: t.activity.light.label, desc: t.activity.light.desc, icon: '🚶', multiplier: ACTIVITY_MULTIPLIERS.light },
-        { id: 'moderate' as ActivityLevelId, label: t.activity.moderate.label, desc: t.activity.moderate.desc, icon: '🏃', multiplier: ACTIVITY_MULTIPLIERS.moderate },
-        { id: 'active' as ActivityLevelId, label: t.activity.active.label, desc: t.activity.active.desc, icon: '🏋️', multiplier: ACTIVITY_MULTIPLIERS.active },
-        { id: 'extra' as ActivityLevelId, label: t.activity.extra.label, desc: t.activity.extra.desc, icon: '⚡', multiplier: ACTIVITY_MULTIPLIERS.extra },
-    ];
+    const ACTIVITY_LEVELS = ACTIVITY_LEVEL_DEFS.map(item => ({
+        ...item,
+        label: t.activity[item.id]?.label || item.id,
+        desc: t.activity[item.id]?.desc || '',
+        multiplier: ACTIVITY_MULTIPLIERS[item.id],
+    }));
 
     useEffect(() => {
         const pulse = Animated.loop(

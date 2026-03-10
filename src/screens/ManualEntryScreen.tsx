@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCalories, MealCategory, FavoriteFood } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
 import { hapticSelection, hapticSuccess, hapticMedium, hapticLight } from '../utils/haptics';
-import { FOOD_DATABASE, getFoodDatabase, getPopularFoods, resolveFoodName, FoodItem } from '../constants';
+import { FOOD_DATABASE, getFoodDatabase, getPopularFoods, resolveFoodName, FoodItem, MEAL_CATEGORY_DEFS } from '../constants';
 
 const PORTIONS = [
     { label: '½', value: 0.5 },
@@ -14,14 +14,6 @@ const PORTIONS = [
     { label: '1½', value: 1.5 },
     { label: '2', value: 2 },
 ];
-
-const CATEGORY_DEFS: { id: MealCategory; icon: string }[] = [
-    { id: 'breakfast', icon: '🌅' },
-    { id: 'lunch', icon: '☀️' },
-    { id: 'dinner', icon: '🌙' },
-    { id: 'snack', icon: '🍪' },
-];
-
 const ManualEntryScreen = () => {
     const navigation = useNavigation();
     const route = useRoute<any>();
@@ -34,6 +26,7 @@ const ManualEntryScreen = () => {
     const [carbs, setCarbs] = useState('');
     const [fat, setFat] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [addedCount, setAddedCount] = useState(0);
 
@@ -46,6 +39,12 @@ const ManualEntryScreen = () => {
     const toastAnim = useRef(new Animated.Value(0)).current;
 
     const isValid = calories.length > 0 && parseInt(calories) > 0;
+
+    // F11: Debounce search input (200ms)
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const showToast = () => {
         toastAnim.setValue(0);
@@ -71,7 +70,7 @@ const ManualEntryScreen = () => {
     };
 
     const getAutoCategory = (food: FoodItem): MealCategory | undefined => {
-        for (const cat of getFoodDatabase(lang)) {
+        for (const cat of FOOD_DATABASE) {
             if (cat.items.includes(food)) {
                 if (cat.id === 'breakfast') return 'breakfast';
                 if (cat.id === 'snacks') return 'snack';
@@ -109,11 +108,16 @@ const ManualEntryScreen = () => {
         showToast();
     };
 
+    // F6+F10: Memoize food database & popular foods (once per language change)
+    const foodDb = useMemo(() => getFoodDatabase(lang), [lang]);
+    const popularFoods = useMemo(() => getPopularFoods(lang), [lang]);
+
+    // F11: Use debounced query for search
     const searchResults = useMemo(() => {
-        if (searchQuery.length === 0) return null;
-        const query = searchQuery.toLowerCase();
+        if (debouncedQuery.length === 0) return null;
+        const query = debouncedQuery.toLowerCase();
         const results: FoodItem[] = [];
-        getFoodDatabase(lang).forEach(cat => {
+        foodDb.forEach(cat => {
             cat.items.forEach(item => {
                 const name = resolveFoodName(item, lang);
                 if (name.toLowerCase().includes(query)) {
@@ -122,13 +126,11 @@ const ManualEntryScreen = () => {
             });
         });
         return results;
-    }, [searchQuery, lang]);
+    }, [debouncedQuery, lang, foodDb]);
 
     const activeCategory = selectedCategory
-        ? getFoodDatabase(lang).find(c => c.id === selectedCategory)
+        ? foodDb.find(c => c.id === selectedCategory)
         : null;
-
-    const popularFoods = getPopularFoods(lang);
 
     const getCategoryLabel = (catId: string): string => {
         const key = catId as keyof typeof t.foodCategories;
@@ -233,7 +235,7 @@ const ManualEntryScreen = () => {
                     {!searchQuery && (
                         <>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4" contentContainerStyle={{ gap: 6 }}>
-                                {getFoodDatabase(lang).map((cat) => (
+                                {foodDb.map((cat) => (
                                     <TouchableOpacity key={cat.id}
                                         onPress={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                                         activeOpacity={0.7}
@@ -351,7 +353,7 @@ const ManualEntryScreen = () => {
 
                             <Text className="text-gray-400 text-xs uppercase tracking-wider mb-2">{t.manual.mealCategory}</Text>
                             <View className="flex-row mb-4" style={{ gap: 6 }}>
-                                {CATEGORY_DEFS.map(c => (
+                                {MEAL_CATEGORY_DEFS.map(c => (
                                     <TouchableOpacity key={c.id} onPress={() => setSelectedMealCategory(c.id)} activeOpacity={0.7}
                                         className={`flex-1 py-2 rounded-lg border items-center ${selectedMealCategory === c.id ? 'bg-primary/20 border-primary' : 'bg-gray-800 border-gray-700'}`}
                                     >

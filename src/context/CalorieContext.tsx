@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Nutrients = {
@@ -91,6 +91,9 @@ export type FavoriteFood = {
     fat: number;
 };
 
+// F2: Date-indexed meals type
+export type MealsByDate = Record<string, MealEntry[]>;
+
 type CalorieContextType = {
     consumed: Nutrients;
     targets: Nutrients;
@@ -113,9 +116,38 @@ type CalorieContextType = {
     removeWater: () => void;
     toggleFavorite: (food: FavoriteFood) => void;
     isFavorite: (name: string) => boolean;
-    allMeals: MealEntry[];
+    allMeals: MealsByDate;
     addMealForDate: (meal: Nutrients, name: string, date: string, category?: MealCategory) => void;
     getMealsForDate: (date: string) => MealEntry[];
+};
+
+// F2: Helper — extract local date key from an ISO timestamp
+const getDateKey = (isoTimestamp: string): string => {
+    const d = new Date(isoTimestamp);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+// F2: Helper — convert flat array to date-indexed record
+const indexMealsByDate = (meals: MealEntry[]): MealsByDate => {
+    const result: MealsByDate = {};
+    meals.forEach(m => {
+        const key = getDateKey(m.timestamp);
+        if (!result[key]) result[key] = [];
+        result[key].push(m);
+    });
+    return result;
+};
+
+// F2: Helper — prune entries older than N days
+const pruneMealsByDate = (meals: MealsByDate, maxDays: number): MealsByDate => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - maxDays);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const result: MealsByDate = {};
+    Object.entries(meals).forEach(([date, entries]) => {
+        if (date >= cutoffStr) result[date] = entries;
+    });
+    return result;
 };
 
 const defaultTargets = {
@@ -175,7 +207,7 @@ const CalorieContext = createContext<CalorieContextType>({
     removeWater: () => { },
     toggleFavorite: () => { },
     isFavorite: () => false,
-    allMeals: [],
+    allMeals: {},
     addMealForDate: () => { },
     getMealsForDate: () => [],
 });
@@ -202,7 +234,7 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
     const waterTarget = 8;
     const [dailyHistory, setDailyHistory] = useState<DailyRecord[]>([]);
     const [favorites, setFavorites] = useState<FavoriteFood[]>([]);
-    const [allMeals, setAllMeals] = useState<MealEntry[]>([]);
+    const [allMeals, setAllMeals] = useState<MealsByDate>({});
 
     // Load persisted data on mount
     useEffect(() => {
@@ -268,21 +300,33 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
                 setMealHistory(JSON.parse(dataMap[STORAGE_KEYS.MEAL_HISTORY]!));
             }
 
-            // Load allMeals and sync with mealHistory
-            let loadedAllMeals: MealEntry[] = dataMap[STORAGE_KEYS.ALL_MEALS]
-                ? JSON.parse(dataMap[STORAGE_KEYS.ALL_MEALS]!) : [];
+            // F2: Load allMeals — migrate from flat array to date-indexed, prune to 90 days
+            let rawAllMeals: any = dataMap[STORAGE_KEYS.ALL_MEALS]
+                ? JSON.parse(dataMap[STORAGE_KEYS.ALL_MEALS]!) : {};
+            // Backward compat: migrate flat array → date-indexed
+            let loadedAllMeals: MealsByDate = Array.isArray(rawAllMeals)
+                ? indexMealsByDate(rawAllMeals)
+                : rawAllMeals;
 
             // Merge current mealHistory into allMeals (for backward compatibility)
             if (dataMap[STORAGE_KEYS.MEAL_HISTORY]) {
                 const historyMeals: MealEntry[] = JSON.parse(dataMap[STORAGE_KEYS.MEAL_HISTORY]!);
-                const existingIds = new Set(loadedAllMeals.map(m => m.id));
-                const newEntries = historyMeals.filter(m => !existingIds.has(m.id));
+                const allExistingIds = new Set(
+                    Object.values(loadedAllMeals).flat().map(m => m.id)
+                );
+                const newEntries = historyMeals.filter(m => !allExistingIds.has(m.id));
                 if (newEntries.length > 0) {
-                    loadedAllMeals = [...loadedAllMeals, ...newEntries];
-                    await AsyncStorage.setItem(STORAGE_KEYS.ALL_MEALS, JSON.stringify(loadedAllMeals));
+                    newEntries.forEach(m => {
+                        const key = getDateKey(m.timestamp);
+                        if (!loadedAllMeals[key]) loadedAllMeals[key] = [];
+                        loadedAllMeals[key].push(m);
+                    });
                 }
             }
+            // Prune to 90 days
+            loadedAllMeals = pruneMealsByDate(loadedAllMeals, 90);
             setAllMeals(loadedAllMeals);
+            await AsyncStorage.setItem(STORAGE_KEYS.ALL_MEALS, JSON.stringify(loadedAllMeals));
 
             if (dataMap[STORAGE_KEYS.ONBOARDING] === 'true') {
                 setOnboardingComplete(true);
@@ -363,12 +407,13 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
         persist(STORAGE_KEYS.TARGETS, newTargets);
     };
 
-    const updateProfile = (profile: UserProfile) => {
+    // F7: useCallback for all public functions
+    const updateProfile = useCallback((profile: UserProfile) => {
         setUserProfile(profile);
         setOnboardingComplete(true);
         persist(STORAGE_KEYS.PROFILE, profile);
         persist(STORAGE_KEYS.ONBOARDING, 'true');
-    };
+    }, []);
 
     const checkBadges = (currentConsumed: Nutrients, currentStreak: number, currentMealHistory?: MealEntry[]) => {
         const meals = currentMealHistory || mealHistory;
@@ -384,9 +429,11 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
             hasLightMeal,
         };
 
+        // F13: Set for O(1) badge lookup
+        const earnedSet = new Set(earnedBadges);
         const newBadges: string[] = [];
         BADGES.forEach(badge => {
-            if (!earnedBadges.includes(badge.id) && badge.condition(contextMock)) {
+            if (!earnedSet.has(badge.id) && badge.condition(contextMock)) {
                 newBadges.push(badge.id);
             }
         });
@@ -401,9 +448,9 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
         }
     };
 
-    const clearNewBadge = () => setBadgeQueue(prev => prev.slice(1));
+    const clearNewBadge = useCallback(() => setBadgeQueue(prev => prev.slice(1)), []);
 
-    const addMeal = (meal: Nutrients, name?: string, category?: MealCategory) => {
+    const addMeal = useCallback((meal: Nutrients, name?: string, category?: MealCategory) => {
         const today = new Date().toISOString().split('T')[0];
         let newStreak = streak;
 
@@ -443,22 +490,26 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
         setConsumed(newConsumed);
         setMealHistory(newHistory);
 
-        // Also save to allMeals
-        const newAllMeals = [...allMeals, entry];
-        setAllMeals(newAllMeals);
+        // F2: Save to date-indexed allMeals
+        setAllMeals(prev => {
+            const key = today;
+            const updated = { ...prev, [key]: [...(prev[key] || []), entry] };
+            AsyncStorage.setItem(STORAGE_KEYS.ALL_MEALS, JSON.stringify(updated))
+                .catch(e => console.error('Failed to persist allMeals:', e));
+            return updated;
+        });
 
-        // F9: Batch all writes atomically with multiSet
+        // Batch persist consumed + history
         AsyncStorage.multiSet([
             [STORAGE_KEYS.CONSUMED, JSON.stringify(newConsumed)],
             [STORAGE_KEYS.CONSUMED_DATE, today],
             [STORAGE_KEYS.MEAL_HISTORY, JSON.stringify(newHistory)],
-            [STORAGE_KEYS.ALL_MEALS, JSON.stringify(newAllMeals)],
         ]).catch(e => console.error('Failed to batch-persist addMeal:', e));
 
         checkBadges(newConsumed, newStreak, newHistory);
-    };
+    }, [streak, lastLogDate, consumed, mealHistory, targets, waterGlasses, earnedBadges]);
 
-    const removeMeal = (id: string) => {
+    const removeMeal = useCallback((id: string) => {
         const entry = mealHistory.find(m => m.id === id);
         if (!entry) return;
 
@@ -474,42 +525,50 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
         setConsumed(newConsumed);
         setMealHistory(newHistory);
 
-        // Also remove from allMeals
-        const newAllMeals = allMeals.filter(m => m.id !== id);
-        setAllMeals(newAllMeals);
+        // F2: Remove from date-indexed allMeals
+        setAllMeals(prev => {
+            const updated = { ...prev };
+            Object.keys(updated).forEach(key => {
+                updated[key] = updated[key].filter(m => m.id !== id);
+                if (updated[key].length === 0) delete updated[key];
+            });
+            AsyncStorage.setItem(STORAGE_KEYS.ALL_MEALS, JSON.stringify(updated))
+                .catch(e => console.error('Failed to persist allMeals:', e));
+            return updated;
+        });
 
-        // F9: Batch all writes atomically
+        // Batch persist consumed + history
         AsyncStorage.multiSet([
             [STORAGE_KEYS.CONSUMED, JSON.stringify(newConsumed)],
             [STORAGE_KEYS.MEAL_HISTORY, JSON.stringify(newHistory)],
-            [STORAGE_KEYS.ALL_MEALS, JSON.stringify(newAllMeals)],
         ]).catch(e => console.error('Failed to batch-persist removeMeal:', e));
-    };
+    }, [mealHistory, consumed]);
 
-    const addWater = () => {
+    const addWater = useCallback(() => {
         const newVal = waterGlasses + 1;
         setWaterGlasses(newVal);
         persist(STORAGE_KEYS.WATER, newVal);
-    };
+    }, [waterGlasses]);
 
-    const removeWater = () => {
+    const removeWater = useCallback(() => {
         const newVal = Math.max(0, waterGlasses - 1);
         setWaterGlasses(newVal);
         persist(STORAGE_KEYS.WATER, newVal);
-    };
+    }, [waterGlasses]);
 
-    const toggleFavorite = (food: FavoriteFood) => {
+    const toggleFavorite = useCallback((food: FavoriteFood) => {
         const exists = favorites.some(f => f.name === food.name);
         const updated = exists
             ? favorites.filter(f => f.name !== food.name)
             : [...favorites, food];
         setFavorites(updated);
         persist(STORAGE_KEYS.FAVORITES, updated);
-    };
+    }, [favorites]);
 
-    const isFavorite = (name: string) => favorites.some(f => f.name === name);
+    const isFavorite = useCallback((name: string) => favorites.some(f => f.name === name), [favorites]);
 
-    const addMealForDate = (meal: Nutrients, name: string, date: string, category?: MealCategory) => {
+    // F2: Date-indexed addMealForDate — O(1) insert
+    const addMealForDate = useCallback((meal: Nutrients, name: string, date: string, category?: MealCategory) => {
         const entry: MealEntry = {
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 9),
             name,
@@ -517,21 +576,35 @@ export const CalorieProvider = ({ children }: { children: React.ReactNode }) => 
             timestamp: new Date(date + 'T12:00:00').toISOString(),
             category,
         };
-        const newAllMeals = [...allMeals, entry];
-        setAllMeals(newAllMeals);
-        persist(STORAGE_KEYS.ALL_MEALS, newAllMeals);
-    };
-
-    const getMealsForDate = (date: string): MealEntry[] => {
-        return allMeals.filter(m => {
-            const d = new Date(m.timestamp);
-            const localDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            return localDate === date;
+        setAllMeals(prev => {
+            const updated = { ...prev, [date]: [...(prev[date] || []), entry] };
+            persist(STORAGE_KEYS.ALL_MEALS, updated);
+            return updated;
         });
-    };
+    }, []);
+
+    // F2: Date-indexed getMealsForDate — O(1) lookup
+    const getMealsForDate = useCallback((date: string): MealEntry[] => {
+        return allMeals[date] || [];
+    }, [allMeals]);
+
+    // F14: Memoized context value to prevent false re-renders
+    const value = useMemo(() => ({
+        consumed, targets, userProfile, streak, earnedBadges, mealHistory,
+        badgeQueue, onboardingComplete, isLoading, waterGlasses, waterTarget,
+        dailyHistory, favorites, allMeals,
+        updateProfile, addMeal, removeMeal, clearNewBadge, addWater,
+        removeWater, toggleFavorite, isFavorite, addMealForDate, getMealsForDate,
+    }), [
+        consumed, targets, userProfile, streak, earnedBadges, mealHistory,
+        badgeQueue, onboardingComplete, isLoading, waterGlasses, waterTarget,
+        dailyHistory, favorites, allMeals,
+        updateProfile, addMeal, removeMeal, clearNewBadge, addWater,
+        removeWater, toggleFavorite, isFavorite, addMealForDate, getMealsForDate,
+    ]);
 
     return (
-        <CalorieContext.Provider value={{ consumed, targets, userProfile, streak, earnedBadges, mealHistory, badgeQueue, onboardingComplete, isLoading, waterGlasses, waterTarget, dailyHistory, favorites, allMeals, updateProfile, addMeal, removeMeal, clearNewBadge, addWater, removeWater, toggleFavorite, isFavorite, addMealForDate, getMealsForDate }}>
+        <CalorieContext.Provider value={value}>
             {children}
         </CalorieContext.Provider>
     );

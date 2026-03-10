@@ -336,3 +336,20 @@ export const resolveFood = (item: FoodItem, lang: 'tr' | 'en'): ResolvedFoodItem
     carbs: item.carbs,
     fat: item.fat,
 });
+
+// ─── Consolidated Category & Activity Constants ─────────────────
+
+export const MEAL_CATEGORY_DEFS = [
+    { id: 'breakfast' as MealCategory, icon: '🌅', timeRange: { tr: '06:00 - 10:00', en: '6 AM - 10 AM' } },
+    { id: 'lunch' as MealCategory, icon: '☀️', timeRange: { tr: '10:00 - 15:00', en: '10 AM - 3 PM' } },
+    { id: 'dinner' as MealCategory, icon: '🌙', timeRange: { tr: '15:00 - 21:00', en: '3 PM - 9 PM' } },
+    { id: 'snack' as MealCategory, icon: '🍪', timeRange: { tr: 'Gün boyu', en: 'All day' } },
+] as const;
+
+export const ACTIVITY_LEVEL_DEFS: { id: ActivityLevelId; icon: string }[] = [
+    { id: 'sedentary', icon: '💻' },
+    { id: 'light', icon: '🚶' },
+    { id: 'moderate', icon: '🏃' },
+    { id: 'active', icon: '🏋️' },
+    { id: 'extra', icon: '⚡' },
+];

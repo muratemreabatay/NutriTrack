@@ -17,7 +17,7 @@ const WeeklyChart = ({ dailyHistory, todayCalories, targetCalories }: WeeklyChar
         Animated.timing(animAnim, { toValue: 1, duration: 800, useNativeDriver: false }).start();
     }, []);
 
-    const getWeekData = () => {
+    const weekData = useMemo(() => {
         const today = new Date();
         const dayOfWeek = today.getDay();
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -42,9 +42,7 @@ const WeeklyChart = ({ dailyHistory, todayCalories, targetCalories }: WeeklyChar
             });
         }
         return days;
-    };
-
-    const weekData = useMemo(() => getWeekData(), [dailyHistory, todayCalories, targetCalories, t]);
+    }, [dailyHistory, todayCalories, targetCalories, t]);
     const maxCal = Math.max(targetCalories, ...weekData.map(d => d.calories), 100);
 
     return (
