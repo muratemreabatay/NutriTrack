@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated, Dimensions, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useCalories } from '../context/CalorieContext';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -9,12 +10,13 @@ import { ACTIVITY_MULTIPLIERS, ActivityLevelId, ACTIVITY_LEVEL_DEFS } from '../c
 import { getAvatarsForGender } from '../constants/avatars';
 import RulerPicker from '../components/RulerPicker';
 import { hapticLight, hapticSuccess } from '../utils/haptics';
+import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 const SmartOnboardingScreen = () => {
     const navigation = useNavigation();
-    const { updateProfile } = useCalories();
+    const { updateProfile, userProfile } = useCalories();
     const { t, lang } = useLanguage();
 
     const [step, setStep] = useState(0);
@@ -27,6 +29,21 @@ const SmartOnboardingScreen = () => {
     const [weight, setWeight] = useState(70);
     const [targetWeight, setTargetWeight] = useState(65);
     const [avatar, setAvatar] = useState<string | undefined>(undefined);
+
+    const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+        });
+
+        if (!result.canceled) {
+            setAvatar(result.assets[0].uri);
+        }
+    };
+
+    const isCustomAvatar = avatar && avatar.includes('/');
 
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
@@ -104,6 +121,7 @@ const SmartOnboardingScreen = () => {
             Animated.delay(600),
         ]).start(() => {
             updateProfile({
+                ...userProfile,
                 weight: String(weight),
                 height: String(height),
                 age: String(age),
@@ -230,6 +248,27 @@ const SmartOnboardingScreen = () => {
                     <View className="mt-4 pb-10">
                         <Text className="text-gray-400 text-sm mb-6 text-center">{t.onboarding.avatarTitle}</Text>
                         <View className="flex-row flex-wrap justify-between" style={{ gap: 12 }}>
+                            {/* Custom Upload Button */}
+                            <TouchableOpacity
+                                onPress={pickImage}
+                                activeOpacity={0.8}
+                                className={`rounded-full p-1 border-2 ${isCustomAvatar ? 'border-primary bg-primary/20' : 'border-dashed border-gray-600'}`}
+                                style={{ width: (width - 48 - 24) / 3, aspectRatio: 1 }}
+                            >
+                                <View className="w-full h-full rounded-full overflow-hidden bg-gray-800 items-center justify-center">
+                                    {isCustomAvatar ? (
+                                        <Image source={{ uri: avatar }} className="w-full h-full" resizeMode="cover" />
+                                    ) : (
+                                        <Feather name="camera" size={32} color="#34D399" />
+                                    )}
+                                </View>
+                                {isCustomAvatar && (
+                                    <View className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full items-center justify-center border-2 border-gray-900">
+                                        <Text className="text-black text-[10px] font-bold">✓</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+
                             {availableAvatars.map((item) => (
                                 <TouchableOpacity
                                     key={item.id}

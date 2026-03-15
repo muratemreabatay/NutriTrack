@@ -150,7 +150,7 @@ const ManualEntryScreen = () => {
                 <View className="flex-1">
                     <Text className="text-white font-medium">{name}</Text>
                     <Text className="text-gray-500 text-xs mt-1">
-                        P: {item.protein}g · K: {item.carbs}g · {t.common.fat.charAt(0)}: {item.fat}g
+                        {t.common.protein.charAt(0)}: {item.protein}g · {t.common.carbs.charAt(0)}: {item.carbs}g · {t.common.fat.charAt(0)}: {item.fat}g
                     </Text>
                 </View>
                 <View className="items-end mr-3">
@@ -346,7 +346,7 @@ const ManualEntryScreen = () => {
                                 <View className="ml-3 flex-1">
                                     <Text className="text-white font-bold text-lg">{resolveFoodName(portionFood, lang)}</Text>
                                     <Text className="text-gray-400 text-xs mt-1">
-                                        P: {portionFood.protein}g · K: {portionFood.carbs}g · {t.common.fat.charAt(0)}: {portionFood.fat}g
+                                        {t.common.protein.charAt(0)}: {portionFood.protein}g · {t.common.carbs.charAt(0)}: {portionFood.carbs}g · {t.common.fat.charAt(0)}: {portionFood.fat}g
                                     </Text>
                                 </View>
                             </View>

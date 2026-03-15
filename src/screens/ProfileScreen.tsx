@@ -152,8 +152,8 @@ const ProfileScreen = () => {
                                 <Text className="text-gray-400 text-sm ml-2 mb-1">kcal</Text>
                             </View>
                             <View className="flex-row mt-3" style={{ gap: 12 }}>
-                                <Text className="text-gray-500 text-xs">P: {targets.protein}g</Text>
-                                <Text className="text-gray-500 text-xs">K: {targets.carbs}g</Text>
+                                <Text className="text-gray-500 text-xs">{t.common.protein.charAt(0)}: {targets.protein}g</Text>
+                                <Text className="text-gray-500 text-xs">{t.common.carbs.charAt(0)}: {targets.carbs}g</Text>
                                 <Text className="text-gray-500 text-xs">{t.common.fat.charAt(0)}: {targets.fat}g</Text>
                             </View>
                             <Text className="text-gray-600 text-xs mt-2">{t.profile.calculated}</Text>

@@ -38,9 +38,9 @@ const StreakBadge = ({ streak }: StreakBadgeProps) => {
                 {config.label ? (
                     <View
                         className="ml-1 px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: config.color + '25' }}
+                        style={{ backgroundColor: config.color + '25', maxWidth: 64 }}
                     >
-                        <Text style={{ color: config.color, fontSize: 9, fontWeight: '800' }}>{config.label}</Text>
+                        <Text style={{ color: config.color, fontSize: 9, fontWeight: '800' }} numberOfLines={1} adjustsFontSizeToFit>{config.label}</Text>
                     </View>
                 ) : null}
             </View>

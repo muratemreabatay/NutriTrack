@@ -82,7 +82,7 @@ const CalendarScreen = () => {
         if (!cal || cal <= 0) return;
         addMealForDate(
             { calories: cal, protein: 0, carbs: 0, fat: 0 },
-            addFormName || (lang === 'tr' ? 'Öğün' : 'Meal'), selectedDate, addFormCategory
+            addFormName || t.fallback.mealName, selectedDate, addFormCategory
         );
         setAddFormName('');
         setAddFormCalories('');

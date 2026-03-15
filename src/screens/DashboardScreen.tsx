@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Animated, useWindowDimensions, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
@@ -25,11 +25,21 @@ const DashboardScreen = () => {
     const isSmallScreen = SCREEN_WIDTH < 380;
     const ringSize = Math.min(SCREEN_WIDTH * 0.4, 170);
 
+    const [currentHour, setCurrentHour] = useState(new Date().getHours());
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active') {
+                setCurrentHour(new Date().getHours());
+            }
+        });
+        return () => subscription.remove();
+    }, []);
+
     const getGreeting = (): string => {
-        const hour = new Date().getHours();
-        const name = userProfile?.name ? `, ${userProfile.name}` : '';
-        if (hour < 12) return `${t.dashboard.greetingMorning}${name}`;
-        if (hour < 18) return `${t.dashboard.greetingAfternoon}${name}`;
+        const name = userProfile?.name ? ` ${userProfile.name}` : '';
+        if (currentHour < 12) return `${t.dashboard.greetingMorning}${name}`;
+        if (currentHour < 18) return `${t.dashboard.greetingAfternoon}${name}`;
         return `${t.dashboard.greetingEvening}${name}`;
     };
 
@@ -108,9 +118,9 @@ const DashboardScreen = () => {
                     className="px-6 pt-4 pb-2"
                 >
                     <View className="flex-row justify-between items-center">
-                        <View>
-                            <Text className="text-gray-400 text-sm">{getGreeting()} 👋</Text>
-                            <Text className="text-white text-2xl font-bold mt-1">{t.dashboard.todaySummary}</Text>
+                        <View className="flex-1 mr-2">
+                            <Text className="text-gray-400 text-sm" numberOfLines={1}>{getGreeting()} 👋</Text>
+                            <Text className="text-white text-2xl font-bold mt-1" numberOfLines={1} adjustsFontSizeToFit>{t.dashboard.todaySummary}</Text>
                         </View>
                         <View className="flex-row items-center">
                             <StreakBadge streak={streak} />
