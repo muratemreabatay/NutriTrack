@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriTrack - Gizlilik Politikası</title>
+    <title>NutriTrack - Privacy Policy</title>
     <style>
         * {
             margin: 0;
@@ -56,57 +56,161 @@
         a {
             color: #34D399;
         }
+
+        .lang-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #111827;
+            color: #9CA3AF;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: #34D399;
+            color: #34D399;
+        }
+
+        .lang-section {
+            display: none;
+        }
+
+        .lang-section.active {
+            display: block;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #1F2937;
+            margin: 32px 0;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>🥗 NutriTrack Gizlilik Politikası</h1>
-        <p class="date">Son güncelleme: 10 Mart 2026</p>
+        <!-- Language Toggle -->
+        <div class="lang-toggle">
+            <button class="lang-btn active" onclick="switchLang('en')">🇬🇧 English</button>
+            <button class="lang-btn" onclick="switchLang('tr')">🇹🇷 Türkçe</button>
+        </div>
 
-        <h2>1. Genel Bakış</h2>
-        <p>NutriTrack, kullanıcıların günlük kalori ve su tüketimini takip etmelerine yardımcı olan bir mobil
-            uygulamadır. Gizliliğinize saygı duyuyoruz ve kişisel verilerinizi korumayı taahhüt ediyoruz.</p>
+        <!-- ENGLISH -->
+        <div id="en" class="lang-section active">
+            <h1>🥗 NutriTrack Privacy Policy</h1>
+            <p class="date">Last updated: March 23, 2026</p>
 
-        <h2>2. Toplanan Veriler</h2>
-        <p>NutriTrack aşağıdaki verileri <strong>yalnızca cihazınızda (yerel olarak)</strong> saklar:</p>
-        <ul>
-            <li>Profil bilgileri (ad, yaş, boy, kilo, cinsiyet, aktivite seviyesi)</li>
-            <li>Günlük yemek ve kalori kayıtları</li>
-            <li>Su tüketimi kayıtları</li>
-            <li>Kazanılan rozetler ve seri bilgisi</li>
-            <li>Uygulama tercihleri (dil, avatar seçimi)</li>
-        </ul>
-        <p><strong>Bu veriler hiçbir sunucuya gönderilmez, cihazınızdan çıkmaz.</strong></p>
+            <h2>1. Overview</h2>
+            <p>NutriTrack is a mobile application that helps users track their daily calorie and water intake. We
+                respect your privacy and are committed to protecting your personal data.</p>
 
-        <h2>3. Veri Paylaşımı</h2>
-        <p>NutriTrack, kişisel verilerinizi üçüncü taraflarla <strong>paylaşmaz</strong>. Uygulama hesap oluşturma
-            gerektirmez ve kullanıcı kimlik doğrulaması yapmaz.</p>
+            <h2>2. Data Collected</h2>
+            <p>NutriTrack stores the following data <strong>only on your device (locally)</strong>:</p>
+            <ul>
+                <li>Profile information (name, age, height, weight, gender, activity level)</li>
+                <li>Daily meal and calorie records</li>
+                <li>Water intake records</li>
+                <li>Earned badges and streak information</li>
+                <li>App preferences (language, avatar selection)</li>
+            </ul>
+            <p><strong>This data is never sent to any server and never leaves your device.</strong></p>
 
-        <h2>4. Cihaz İzinleri</h2>
-        <ul>
-            <li><strong>Bildirimler:</strong> Öğün hatırlatıcıları ve su içme hatırlatıcıları göndermek için kullanılır.
-            </li>
-            <li><strong>Kamera (yakında):</strong> AI destekli yemek tanıma özelliği için planlanmıştır. Şu an aktif
-                değildir.</li>
-            <li><strong>Fotoğraf galerisi:</strong> Profil fotoğrafı seçimi ve yemek fotoğrafı analizi için kullanılır.
-            </li>
-        </ul>
+            <h2>3. Data Sharing</h2>
+            <p>NutriTrack does <strong>not share</strong> your personal data with third parties. The app does not
+                require account creation and does not perform user authentication.</p>
 
-        <h2>5. Veri Güvenliği</h2>
-        <p>Tüm veriler cihazınızın yerel depolama alanında (AsyncStorage) saklanır. Verilere yalnızca siz
-            erişebilirsiniz. Uygulamayı sildiğinizde tüm veriler kalıcı olarak silinir.</p>
+            <h2>4. Device Permissions</h2>
+            <ul>
+                <li><strong>Notifications:</strong> Used to send meal reminders and water drinking reminders.</li>
+                <li><strong>Camera (coming soon):</strong> Planned for AI-powered food recognition. Not currently
+                    active.</li>
+                <li><strong>Photo Gallery:</strong> Used for profile photo selection and food photo analysis.</li>
+            </ul>
 
-        <h2>6. Çocukların Gizliliği</h2>
-        <p>NutriTrack, 13 yaşın altındaki çocuklara yönelik değildir. 13 yaşın altındaki kullanıcılardan bilerek veri
-            toplamayız.</p>
+            <h2>5. Data Security</h2>
+            <p>All data is stored in your device's local storage (AsyncStorage). Only you can access your data. When
+                you uninstall the app, all data is permanently deleted.</p>
 
-        <h2>7. Değişiklikler</h2>
-        <p>Bu gizlilik politikası güncellenebilir. Güncellemeler uygulama içinden duyurulacaktır.</p>
+            <h2>6. Children's Privacy</h2>
+            <p>NutriTrack is not intended for children under 13 years of age. We do not knowingly collect data from
+                users under 13.</p>
 
-        <h2>8. İletişim</h2>
-        <p>Sorularınız için: <a href="mailto:nutritrackinformation@gmail.com">nutritrackinformation@gmail.com</a></p>
+            <h2>7. Changes</h2>
+            <p>This privacy policy may be updated. Updates will be announced within the app.</p>
+
+            <h2>8. Contact</h2>
+            <p>For questions: <a href="mailto:nutritrackinformation@gmail.com">nutritrackinformation@gmail.com</a></p>
+        </div>
+
+        <!-- TÜRKÇE -->
+        <div id="tr" class="lang-section">
+            <h1>🥗 NutriTrack Gizlilik Politikası</h1>
+            <p class="date">Son güncelleme: 23 Mart 2026</p>
+
+            <h2>1. Genel Bakış</h2>
+            <p>NutriTrack, kullanıcıların günlük kalori ve su tüketimini takip etmelerine yardımcı olan bir mobil
+                uygulamadır. Gizliliğinize saygı duyuyoruz ve kişisel verilerinizi korumayı taahhüt ediyoruz.</p>
+
+            <h2>2. Toplanan Veriler</h2>
+            <p>NutriTrack aşağıdaki verileri <strong>yalnızca cihazınızda (yerel olarak)</strong> saklar:</p>
+            <ul>
+                <li>Profil bilgileri (ad, yaş, boy, kilo, cinsiyet, aktivite seviyesi)</li>
+                <li>Günlük yemek ve kalori kayıtları</li>
+                <li>Su tüketimi kayıtları</li>
+                <li>Kazanılan rozetler ve seri bilgisi</li>
+                <li>Uygulama tercihleri (dil, avatar seçimi)</li>
+            </ul>
+            <p><strong>Bu veriler hiçbir sunucuya gönderilmez, cihazınızdan çıkmaz.</strong></p>
+
+            <h2>3. Veri Paylaşımı</h2>
+            <p>NutriTrack, kişisel verilerinizi üçüncü taraflarla <strong>paylaşmaz</strong>. Uygulama hesap oluşturma
+                gerektirmez ve kullanıcı kimlik doğrulaması yapmaz.</p>
+
+            <h2>4. Cihaz İzinleri</h2>
+            <ul>
+                <li><strong>Bildirimler:</strong> Öğün hatırlatıcıları ve su içme hatırlatıcıları göndermek için
+                    kullanılır.</li>
+                <li><strong>Kamera (yakında):</strong> AI destekli yemek tanıma özelliği için planlanmıştır. Şu an
+                    aktif değildir.</li>
+                <li><strong>Fotoğraf galerisi:</strong> Profil fotoğrafı seçimi ve yemek fotoğrafı analizi için
+                    kullanılır.</li>
+            </ul>
+
+            <h2>5. Veri Güvenliği</h2>
+            <p>Tüm veriler cihazınızın yerel depolama alanında (AsyncStorage) saklanır. Verilere yalnızca siz
+                erişebilirsiniz. Uygulamayı sildiğinizde tüm veriler kalıcı olarak silinir.</p>
+
+            <h2>6. Çocukların Gizliliği</h2>
+            <p>NutriTrack, 13 yaşın altındaki çocuklara yönelik değildir. 13 yaşın altındaki kullanıcılardan bilerek
+                veri toplamayız.</p>
+
+            <h2>7. Değişiklikler</h2>
+            <p>Bu gizlilik politikası güncellenebilir. Güncellemeler uygulama içinden duyurulacaktır.</p>
+
+            <h2>8. İletişim</h2>
+            <p>Sorularınız için: <a
+                    href="mailto:nutritrackinformation@gmail.com">nutritrackinformation@gmail.com</a></p>
+        </div>
     </div>
+
+    <script>
+        function switchLang(lang) {
+            document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(lang).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 
 </html>
